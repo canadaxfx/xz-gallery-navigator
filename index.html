@@ -2383,10 +2383,6 @@
             class="modal-photo hidden"
             playsinline
           ></video>
-          <div id="nasVideoNotice" class="hidden" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(0,0,0,0.75);color:white;text-align:center;padding:20px;z-index:10;">
-            <span style="font-size:14px;">🎬 This video is hosted on NAS and isn't played here.<br><span style="font-size:12px;opacity:0.8;">此视频托管于 NAS，本站不支持在线播放</span></span>
-            <a id="nasVideoLink" href="#" target="_blank" rel="noopener" class="gallery-id-badge" style="text-decoration:none;padding:6px 14px;font-size:12px;"></a>
-          </div>
           <div id="badgesRow" style="position:absolute;bottom:0;left:10px;display:flex;gap:6px;align-items:center;z-index:11;">
               <span id="badgeQuality" class="badge-quality hidden"></span>
               <a id="badgeYT" class="badge-youtube hidden" target="_blank" rel="noopener">YouTube ↗</a>
@@ -2489,7 +2485,7 @@
             <input
               type="hidden"
               name="_next"
-              value="report-success.html"
+              value="https://xz-gallery-navigator.pages.dev/report-success.html"
             />
             <input
               type="hidden"
@@ -3491,9 +3487,6 @@
         const _isVid = isRealVideo(photo);
         const _isMotion = isMotionUrl(photo.url);
         const _isYT = isYouTubeUrl(photo.url);
-        // NAS-hosted (>500MB) videos aren't played in this site — their nginx referer
-        // whitelist doesn't cover this domain, and most have a YouTube alternative anyway.
-        const _isNas = dlIsLocked(photo.url) && !_isYT && (_isVid || isPlayableVideo(photo.url) || isClip(photo));
 
         let ytFrame = document.getElementById('modalYouTube');
         if (!_isYT && ytFrame) {
@@ -3502,21 +3495,7 @@
           ytFrame.parentNode && ytFrame.parentNode.classList.remove('yt-active');
         }
 
-        const nasNotice = document.getElementById('nasVideoNotice');
-        if (nasNotice) nasNotice.classList.toggle('hidden', !_isNas);
-
-        if (_isNas) {
-          imgElement.classList.add("hidden");
-          videoElement.classList.add("hidden");
-          if (videoElement) { videoElement.pause(); videoElement.src = ''; }
-          const nasLink = document.getElementById('nasVideoLink');
-          const _gMeta = GALLERY_META[photo._gallery];
-          if (nasLink && _gMeta) {
-            nasLink.textContent = `Watch on ${_gMeta.short} ↗`;
-            nasLink.href = _gMeta.base;
-            nasLink.style.background = _gMeta.color;
-          }
-        } else if (_isYT) {
+        if (_isYT) {
           imgElement.classList.add("hidden");
           videoElement.classList.add("hidden");
           if (videoElement) { videoElement.pause(); videoElement.src = ''; }
@@ -3575,10 +3554,7 @@
         if (fsNext) fsNext.disabled = currentPhotoIndex === currentPhotoGroup.length - 1;
 
         // --- 6. Update Download Link ---
-        if (_isNas) {
-          // Not offered here — see "Watch on [Gallery]" link over the video instead
-          downloadBtn.style.display = 'none';
-        } else if (_isYT) {
+        if (_isYT) {
           if (photo.download_url) {
             dlSetBtn(downloadBtn, photo.download_url);
             downloadBtn.style.display = '';
