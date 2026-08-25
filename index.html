@@ -4401,6 +4401,31 @@
         });
       }
 
+      // Safety net for a case the per-group rAF force-load can miss: browsers
+      // throttle requestAnimationFrame (and can defer IntersectionObserver
+      // callbacks) in a background tab. If a search/filter renders while this
+      // tab isn't focused, the images can get stuck as permanent placeholders —
+      // switching tabs and back was observed to "fix" it, which is exactly the
+      // rAF-throttling symptom. Re-scan the whole page (not just one group)
+      // whenever the tab regains focus/visibility.
+      function forceLoadVisibleImages() {
+        const vh = window.innerHeight;
+        document.querySelectorAll('.lazy-image[data-src]').forEach((img) => {
+          if (img.src) return;
+          const rect = img.getBoundingClientRect();
+          if (rect.width > 0 && rect.top < vh + 100 && rect.bottom > -100) {
+            img.src = img.dataset.src;
+            img.onload  = () => img.classList.remove('loading-placeholder');
+            img.onerror = () => img.classList.remove('loading-placeholder');
+            if (imageObserver) imageObserver.unobserve(img);
+          }
+        });
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') forceLoadVisibleImages();
+      });
+      window.addEventListener('focus', forceLoadVisibleImages);
+
       function unloadYearImages(year) {
         document.querySelectorAll(`#photos-${year} img`).forEach((img) => {
           img.removeAttribute("src");
