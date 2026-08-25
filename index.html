@@ -2234,7 +2234,7 @@
       </header>
       <nav class="nav-buttons">
         <button class="nav-btn active" data-section="gallery"><span class="tab-en">Media Timeline</span><span class="tab-zh">时间线图库</span></button>
-        <button class="nav-btn" data-section="playlists"><span class="tab-en">Playlists</span><span class="tab-zh">精选播放列表</span></button>
+        <button class="nav-btn" data-section="playlists"><span class="tab-en">Collections</span><span class="tab-zh">精选合集</span></button>
       </nav>
 
       <div id="gallery-section" class="content-section">
@@ -2337,6 +2337,7 @@
           Curated collections · 精选合集 — click one to browse
         </div>
         <div class="source-filters" id="curatedPlaylistChips"></div>
+        <div id="curatedPlaylistActions" style="text-align:center;margin:10px 0;"></div>
         <div id="curationExportPanel" class="hidden" style="max-width:900px;margin:10px auto;padding:10px 14px;border:1px dashed rgba(128,128,128,0.4);border-radius:10px;font-size:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
             <strong>Curation mode 策展模式</strong>
@@ -2949,9 +2950,9 @@
       function plModalToggle() {
           const photo = currentPhotoGroup[currentPhotoIndex];
           if (!photo) return;
-          const inList = playlist.some(p => p.id === photo.id);
+          const inList = playlist.some(p => p.url === photo.url);
           if (inList) {
-              playlist = playlist.filter(p => p.id !== photo.id);
+              playlist = playlist.filter(p => p.url !== photo.url);
               plToast('已从播放列表移除');
           } else {
               playlist.push(photo);
@@ -2963,7 +2964,7 @@
       function plSyncModalAddBtn(photo) {
           const btn = document.getElementById('plModalAddBtn2');
           if (!btn) return;
-          const inList = playlist.some(p => p.id === photo.id);
+          const inList = playlist.some(p => p.url === photo.url);
           btn.classList.toggle('pl-in-list', inList);
           btn.textContent = inList ? '✓ 在播放列表中 In Playlist' : '+ 加入播放列表 Add to Playlist';
       }
@@ -3154,24 +3155,63 @@
         }).join('') || '<div style="opacity:0.6;font-size:12px;">No curated collections yet.</div>';
       }
 
-      function showCuratedPlaylist(key) {
-        _activeCuratedKey = key;
-        renderCuratedPlaylistChips();
+      // photoData can hold more than one entry per url (same media cross-posted
+      // to multiple galleries) — dedupe by url so a curated item shows once.
+      function curatedCollectionItems(key) {
         const urls = new Set(curatedPlaylistUrls(key));
-        // photoData can hold more than one entry per url (same media cross-posted
-        // to multiple galleries) — dedupe by url so a curated item shows once.
         const seenUrls = new Set();
-        const items = photoData.filter(p => {
+        return photoData.filter(p => {
           if (!urls.has(p.url) || seenUrls.has(p.url)) return false;
           seenUrls.add(p.url);
           return true;
         });
+      }
+
+      function showCuratedPlaylist(key) {
+        _activeCuratedKey = key;
+        renderCuratedPlaylistChips();
+        const items = curatedCollectionItems(key);
+
+        const actions = document.getElementById('curatedPlaylistActions');
+        if (actions) {
+          const videoCount = items.filter(p => isVideoEntry(p)).length;
+          actions.innerHTML = videoCount ? `
+            <button class="btn" onclick="playCuratedCollection('${key}')">▶ Play collection · 播放本合集 (${videoCount})</button>
+            <button class="btn" onclick="addCuratedToPlaylist('${key}')">＋ Add to My Playlist · 加入我的播放列表</button>
+          ` : '';
+        }
+
         const grid = document.getElementById('curatedPlaylistGrid');
         if (!grid) return;
         grid.innerHTML = items.length
           ? items.map(renderPhotoCard).join('')
           : '<div class="timeline-empty"><h3>Empty</h3><p>Nothing curated here yet.</p></div>';
         grid.querySelectorAll('.lazy-image[data-src]').forEach(img => { if (imageObserver) imageObserver.observe(img); });
+      }
+
+      // Ephemeral playback — plays straight through the collection's own videos
+      // without touching the visitor's personal playlist (xzUnifiedPlaylist).
+      function playCuratedCollection(key) {
+        const videos = curatedCollectionItems(key).filter(p => isVideoEntry(p));
+        if (!videos.length) return;
+        playlistMode = true;
+        currentPhotoGroup = videos;
+        currentPhotoIndex = 0;
+        document.getElementById('photoModal').classList.remove('hidden');
+        updateModalContent();
+        generateThumbnails();
+        updateNavigationButtons();
+        document.addEventListener('keydown', handleKeyboardNavigation);
+      }
+
+      // Adds this collection's videos into the visitor's own persistent
+      // playlist (separate from the curated collection itself — see plCardAdd).
+      function addCuratedToPlaylist(key) {
+        const videos = curatedCollectionItems(key).filter(p => isVideoEntry(p));
+        let added = 0;
+        videos.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
+        plSave(); plRender();
+        plToast(added ? `已加入我的播放列表 ${added} 个视频` : '视频已全在我的播放列表中');
       }
 
       // Owner-only — adds/removes one item (by its stable url) to a curated
