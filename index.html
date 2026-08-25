@@ -2333,9 +2333,6 @@
       </div>
 
       <div id="playlists-section" class="content-section hidden">
-        <div style="text-align:center;font-size:13px;opacity:0.75;margin:6px 0 14px;">
-          Curated collections · 精选合集 — click one to browse
-        </div>
         <div class="source-filters" id="curatedPlaylistChips"></div>
         <div id="curatedPlaylistActions" style="text-align:center;margin:10px 0;"></div>
         <div id="curationExportPanel" class="hidden" style="max-width:900px;margin:10px auto;padding:10px 14px;border:1px dashed rgba(128,128,128,0.4);border-radius:10px;font-size:12px;">
@@ -3217,9 +3214,26 @@
       // Owner-only — adds/removes one item (by its stable url) to a curated
       // collection via a simple prompt. Draft state lives in localStorage until
       // exported and pasted into CURATED_PLAYLISTS above.
+      // Whether/which collection already contains this url (shipped or draft) —
+      // drives the ✚/− icon so curators can see selection state while browsing.
+      function isUrlCurated(url) {
+        return curatedPlaylistKeys().some(k => curatedPlaylistUrls(k).includes(url));
+      }
+      function curationKeyForUrl(url) {
+        return curatedPlaylistKeys().find(k => curatedPlaylistUrls(k).includes(url)) || null;
+      }
+      function syncAllCurationButtons() {
+        document.querySelectorAll('[id^="curadd-"]').forEach(btn => {
+          const id = parseInt(btn.id.replace('curadd-', ''));
+          const photo = photoData.find(p => p.id === id);
+          if (photo) btn.textContent = isUrlCurated(photo.url) ? '−' : '✚';
+        });
+      }
+
       function toggleCurationItem(url) {
         const existingKeys = curatedPlaylistKeys();
-        const key = prompt(`Add/remove this item from a collection.\nExisting: ${existingKeys.join(', ') || '(none yet)'}\n\nType a key (new or existing). Leave blank to cancel.`);
+        const currentKey = curationKeyForUrl(url);
+        const key = prompt(`Add/remove this item from a collection.\nExisting: ${existingKeys.join(', ') || '(none yet)'}\n\nType a key (new or existing). Leave blank to cancel.`, currentKey || '');
         if (!key) return;
         const draft = curationLoadDraft();
         if (!draft[key]) draft[key] = [];
@@ -3237,6 +3251,7 @@
         }
         curationSaveDraft(draft);
         renderCuratedPlaylistChips();
+        syncAllCurationButtons();
       }
 
       function curationExportToClipboard() {
@@ -4154,7 +4169,7 @@
                      class="lazy-image">
                 ${motionBadge}
                 ${isVideo ? `<button class="pl-card-add" id="plcadd-${photo.id}" onclick="event.stopPropagation();plCardAdd(${photo.id})"><b>＋</b> Playlist</button>` : ''}
-                ${_curationMode ? `<button title="Add to curated collection" style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:4px;padding:1px 5px;font-size:11px;cursor:pointer;z-index:4;" onclick="event.stopPropagation();toggleCurationItem(${jsStr(photo.url)})">✚</button>` : ''}
+                ${_curationMode ? `<button id="curadd-${photo.id}" title="Add to curated collection" style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:4px;padding:1px 5px;font-size:11px;cursor:pointer;z-index:4;" onclick="event.stopPropagation();toggleCurationItem(${jsStr(photo.url)})">${isUrlCurated(photo.url) ? '−' : '✚'}</button>` : ''}
                 ${(Array.isArray(photo.source) && photo.source.length) ? `<div class="source-hover-tip">${photo.source.join(' · ')}</div>` : (photo.source ? `<div class="source-hover-tip">${photo.source}</div>` : '')}
                 <div class="photo-overlay">
                     <span class="photo-date">${photo.date}</span>
