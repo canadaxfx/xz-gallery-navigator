@@ -3117,7 +3117,14 @@
         _activeCuratedKey = key;
         renderCuratedPlaylistChips();
         const urls = new Set(curatedPlaylistUrls(key));
-        const items = photoData.filter(p => urls.has(p.url));
+        // photoData can hold more than one entry per url (same media cross-posted
+        // to multiple galleries) — dedupe by url so a curated item shows once.
+        const seenUrls = new Set();
+        const items = photoData.filter(p => {
+          if (!urls.has(p.url) || seenUrls.has(p.url)) return false;
+          seenUrls.add(p.url);
+          return true;
+        });
         const grid = document.getElementById('curatedPlaylistGrid');
         if (!grid) return;
         grid.innerHTML = items.length
