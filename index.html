@@ -205,7 +205,7 @@
         --red-rgb: 160, 40, 60; --shad-rgb: 80, 16, 28;
         --grad-red:   linear-gradient(135deg, #7A2030 0%, #5C1825 100%);
         --grad-red-h: linear-gradient(135deg, #8A2030, #6A1828);
-        --grad-year:  linear-gradient(135deg, #7A2030, #5C1825);
+        --grad-year:  linear-gradient(135deg, #C06078, #A8455E);
         --surface:   rgba(252, 250, 248, 0.78);
         --surface-0: rgba(248, 246, 244, 0.68);
         --surface-w: rgba(242, 240, 238, 0.75);
@@ -232,7 +232,7 @@
         --red-rgb: 50, 70, 120; --shad-rgb: 24, 36, 64;
         --grad-red:   linear-gradient(135deg, #3A4860 0%, #283A50 100%);
         --grad-red-h: linear-gradient(135deg, #4A5870, #3A4860);
-        --grad-year:  linear-gradient(135deg, #3A4860, #283A50);
+        --grad-year:  linear-gradient(135deg, #6884B8, #4E6898);
         --surface:   rgba(250, 251, 255, 0.78);
         --surface-0: rgba(245, 247, 252, 0.68);
         --surface-w: rgba(238, 241, 250, 0.75);
@@ -466,7 +466,7 @@
         transition: color 0.25s ease, border-color 0.25s ease; background: transparent;
       }
       nav.nav-buttons .nav-btn.active {
-        color: white; border-bottom: 2px solid rgba(var(--gold-rgb), 1);
+        color: white; border-bottom: 4px solid rgba(var(--gold-rgb), 1);
         background: transparent; box-shadow: none; transform: none;
       }
       nav.nav-buttons .nav-btn:hover {
@@ -475,6 +475,14 @@
       }
       nav.nav-buttons .tab-en { display: block; color: rgba(255,255,255,0.9); font-weight: 600; font-size: 13px; }
       nav.nav-buttons .tab-zh { display: block; color: rgba(var(--gold-rgb), 0.75); font-weight: 500; font-size: 11px; }
+      /* Active tab reads heavier through type alone (bigger/bolder + a soft
+         glow) rather than a filled background, which read as too heavy. */
+      nav.nav-buttons .nav-btn.active .tab-en {
+        font-weight: 700; font-size: 15px;
+      }
+      nav.nav-buttons .nav-btn.active .tab-zh {
+        font-weight: 800;
+      }
       nav.nav-buttons .nav-btn:not(.active) .tab-en { color: rgba(255,255,255,0.45); }
       nav.nav-buttons .nav-btn:not(.active) .tab-zh { color: rgba(var(--gold-rgb), 0.3); }
       nav.nav-buttons .nav-btn:hover .tab-en { color: rgba(255,255,255,0.9); }
@@ -971,11 +979,11 @@
         box-shadow: 0 1px 3px rgba(var(--gold-dr), 0.4), 0 1px 2px rgba(0, 0, 0, 0.06);
       }
       .media-tab.active:hover { background: var(--grad-gold-h); }
-      /* Gallery chips (Studio/HD Misc/Archive) light up in their own badge color
-         instead of gold when active — set via --tab-color on each button; the
-         "All" gallery button has no --tab-color so it still falls back to gold. */
-      #galleryFilterRow .filter-group-tabs .media-tab.active { background: var(--tab-color, var(--grad-gold)); }
-      #galleryFilterRow .filter-group-tabs .media-tab.active:hover { background: var(--tab-color, var(--grad-gold-h)); filter: brightness(1.08); }
+      /* Gallery chips (Studio/HD Misc/Archive) use the site's own theme accent
+         when active, same as every other tab — not a fixed per-gallery color,
+         which used to clash against non-default themes. */
+      #galleryFilterRow .filter-group-tabs .media-tab.active { background: var(--grad-gold); }
+      #galleryFilterRow .filter-group-tabs .media-tab.active:hover { background: var(--grad-gold-h); }
 
       .date-select-wrapper {
         display: flex;
@@ -1668,6 +1676,11 @@
           padding: 8px 18px 10px;
           font-size: 11px;
         }
+        .collection-action-btn {
+          font-size: 11px;
+          padding: 7px 10px;
+          word-break: keep-all;
+        }
         .year-photos-grid {
           grid-template-columns: repeat(3, 1fr);
           gap: 8px;
@@ -2113,6 +2126,30 @@
       [data-theme="washi-garnet"] #backToTopFloat .float-top-text,
       [data-theme="washi-slate"]  #backToTopFloat .float-top-text { color: rgba(255,255,255,0.92); }
 
+      /* washi themes: --grad-gold's dark maroon/navy reads as a heavy, harsh
+         solid fill against the light paper background — lighten just these
+         large filled buttons (not the --grad-gold variable itself, which is
+         also used elsewhere at the current darkness on purpose). Small pills
+         (.gallery-id-badge, .timeline-year-count) are deliberately NOT
+         lightened here — they need to stay dark to stand out against the
+         now-lighter header/box backgrounds they sit on. */
+      [data-theme="washi-garnet"] .media-tab.active,
+      [data-theme="washi-garnet"] #galleryFilterRow .filter-group-tabs .media-tab.active {
+        background: linear-gradient(135deg, #C06078 0%, #A8455E 50%, #B8546C 100%);
+      }
+      [data-theme="washi-garnet"] .media-tab.active:hover,
+      [data-theme="washi-garnet"] #galleryFilterRow .filter-group-tabs .media-tab.active:hover {
+        background: linear-gradient(135deg, #B0546C 0%, #983A52 50%, #A84860 100%);
+      }
+      [data-theme="washi-slate"] .media-tab.active,
+      [data-theme="washi-slate"] #galleryFilterRow .filter-group-tabs .media-tab.active {
+        background: linear-gradient(135deg, #6884B8 0%, #4E6898 50%, #5E76A8 100%);
+      }
+      [data-theme="washi-slate"] .media-tab.active:hover,
+      [data-theme="washi-slate"] #galleryFilterRow .filter-group-tabs .media-tab.active:hover {
+        background: linear-gradient(135deg, #5A749E 0%, #405C84 50%, #506894 100%);
+      }
+
       /* ---------- By Category tab: source section headers ---------- */
       .source-section { margin-bottom: 16px; }
       .source-section-header {
@@ -2307,9 +2344,9 @@
             <button class="media-tab active" data-gallery="all" onclick="setGalleryFilter('all')">All<br>全部</button>
           </div>
           <div class="media-filter-tabs filter-group-tabs" id="galleryFilterChips">
-            <button class="media-tab" style="--tab-color:#1E3A5F" data-gallery="studio" onclick="setGalleryFilter('studio')">Studio<br>工作室</button>
-            <button class="media-tab" style="--tab-color:#5B6B7F" data-gallery="misc" onclick="setGalleryFilter('misc')">HD Misc<br>高清-其他</button>
-            <button class="media-tab" style="--tab-color:#3A3A3A" data-gallery="archive" onclick="setGalleryFilter('archive')">Archive<br>社媒存档</button>
+            <button class="media-tab" data-gallery="studio" onclick="setGalleryFilter('studio')">Studio<br>工作室</button>
+            <button class="media-tab" data-gallery="misc" onclick="setGalleryFilter('misc')">HD Misc<br>高清-其他</button>
+            <button class="media-tab" data-gallery="archive" onclick="setGalleryFilter('archive')">Archive<br>社媒存档</button>
           </div>
         </div>
 
@@ -2333,8 +2370,6 @@
       </div>
 
       <div id="playlists-section" class="content-section hidden">
-        <div class="source-filters" id="curatedPlaylistChips"></div>
-        <div id="curatedPlaylistActions" style="text-align:center;margin:10px 0;"></div>
         <div id="curationExportPanel" class="hidden" style="max-width:900px;margin:10px auto;padding:10px 14px;border:1px dashed rgba(128,128,128,0.4);border-radius:10px;font-size:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
             <strong>Curation mode 策展模式</strong>
@@ -2342,7 +2377,7 @@
           </div>
           <div style="opacity:0.7;">Use the ＋ button on each card (in this tab or the timeline) to add/remove it from a collection, then copy and paste the result over the <code>CURATED_PLAYLISTS</code> constant in the source before pushing.</div>
         </div>
-        <div id="curatedPlaylistGrid" class="year-photos-grid" style="max-width:1000px;margin:12px auto 0;"></div>
+        <div id="curatedCollectionBoxes" class="search-results-container"></div>
       </div>
     </div>
 
@@ -2754,19 +2789,19 @@
       // colors (weibo gold, rednote/rednote-adjacent reds, twitter blue, etc).
       const GALLERY_META = {
         studio: {
-          name: 'XZ Studio Gallery', label: 'Studio', short: 'STU', color: '#1E3A5F',
+          name: 'XZ Studio Gallery', label: 'Studio', short: 'STU',
           base: 'https://xz-studio-gallery.com/',
           years: [2026,2025,2024,2023,2022,2021,2020,2019],
           file: (y) => `${y}.json`,
         },
         misc: {
-          name: 'XZ HD Gallery Misc', label: 'HD Misc', short: 'MISC', color: '#5B6B7F',
+          name: 'XZ HD Gallery Misc', label: 'HD Misc', short: 'MISC',
           base: 'https://xz-hd-gallery-misc.pages.dev/',
           years: [2026,2025,2024,2023,2022,2021,2020,2019,2018,2017,2016],
           file: (y) => `Misc_${y}.json`,
         },
         archive: {
-          name: 'XZ Social Media Archive', label: 'Archive', short: 'ARCH', color: '#3A3A3A',
+          name: 'XZ Social Media Archive', label: 'Archive', short: 'ARCH',
           base: 'https://xz-social-media-archive.pages.dev/',
           years: [2026,2025,2024,2023,2022,2021,2020,2019,2018,2017,2016,2015],
           file: (y) => `${y}.json`,
@@ -3086,17 +3121,233 @@
             "https://assets.xz-studio-gallery.com/full/20250828_我的中国心_XZ-MISC-1.mp4",
             "https://assets.xz-studio-gallery.com/full/20240923_湾区升明月这世界那么多人_XZ-MISC-1.mp4",
             "https://assets.xz-studio-gallery.com/full/20240923_湾区升明月往事随风_XZ-MISC-1.mp4",
-            "https://assets.xz-studio-gallery.com/full/20230629_湾区升明月潇洒走一回_XZ-1.mp4"
+            "https://assets.xz-studio-gallery.com/full/20230629_湾区升明月潇洒走一回_XZ-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191019_你是此生最美的风景_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241011_绿光_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241011_恼人的秋风_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241005_完美生活_XZ-MISC-1.mp4"
           ]
         },
         "interviews": {
           "name": "Interviews",
           "nameZh": "采访",
-          "urls": []
+          "urls": [
+            "https://assets.xz-studio-gallery.com/full/20251212_得闲谨制_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260530_得闲谨制_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260324_NARS_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260324_VOGUEplus_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260324_NARS_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260315_电视剧品质盛典_XZ-24.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260304_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260302_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260302_TODS_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260301_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260228_VOGUEplus_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20251217_狐厂大拷问得闲谨制_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20251216_得闲谨制_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20251211_得闲谨制_XZ-STU-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20251130_TODS_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250528_藏海传_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250528_藏海传_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250524_CCTV电视剧藏海传_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250304_TODS_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250303_ELLE_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250228_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250226_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250128_射雕英雄传侠之大者_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250127_射雕英雄传百度娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240226_TODS_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240226_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240206_中国电视剧年度盛典_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240117_中国电视剧年度盛典_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240116_中国电视剧年度盛典_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230920_骄阳伴我_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260317_电视剧品质盛典_XZ-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260318_电视剧品质盛典_XZ-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260318_电视剧品质盛典_XZ-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260317_电视剧品质盛典_XZ-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260317_电视剧品质盛典_XZ-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230915_骄阳伴我_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230915_网易娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230914_中国电影报道_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230914_中国电影报道_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230913_入戏_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230913_骄阳伴我_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230718_玉骨遥_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230716_玉骨遥_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230714_玉骨遥_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230713_玉骨遥采访_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230706_入戏_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230628_梦中的那片海_XZ-MISC-5.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230620_非常道梦中的那片海_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230618_入戏_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230616_梦中的那片海_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230614_梦中的那片海_XZ-MISC-6.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230613_梦中的那片海_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230301_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230303_TODS_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230227_TODS_XZ-MISC-6.mp4",
+            "https://assets.xz-studio-gallery.com/full/20221208_微博视界大会_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20220408_WeTV余生请多指教_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20220407_Big磅余生请多指教_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20220403_入戏余生请多指教_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20220401_入戏余生请多指教_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20220317_出戏余生请多指教_XZ-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20220113_京东电器_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210315_斗罗大陆_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210304_星推荐斗罗大陆_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210302_星推荐斗罗大陆_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210224_Big磅斗罗大陆_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210217_入戏_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210216_入戏_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210214_入戏_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260503_大学生电影节_XZ-STU-55.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250523_藏海传_XZ-STU-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250518_藏海传_XZ-STU-5.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260309_电视剧品质盛典_XZ-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210211_入戏斗罗大陆_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210210_入戏斗罗大陆_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210119_DY_抖音星动之夜_XZ-MISC-8.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210119_DY_抖音星动之夜_XZ-MISC-7.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210119_DY_抖音星动之夜_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210119_DY_抖音星动之夜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20201230_娱乐有饭_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200825_大眼星推荐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200731_纪念曹禺诞辰110周年直播_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200619_蔚县采访_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200221_VogueMe_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200127_央视春晚_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200125_Big磅_XZ-MISC-1.mp4",
+            "https://www.youtube.com/watch?v=qiPJOD4kwGQ",
+            "https://assets.xz-studio-gallery.com/full/20200112_我们的歌_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200117_阅文盛典采访_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200118_中国青年报_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200120_阅文盛典_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200108_最美表演_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200108_娱乐白皮书_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200106_阅文_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20200102_ELLEMEN_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191227_Big磅_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191223_电影频道_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191221_SuperELLE_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191218_最美表演_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191218_为你煲汤_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191215_为你煲汤_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191212_汰渍_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191211_为你煲汤_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191211_ELLEMEN_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191210_VOGUE_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191209_博朗_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191208_为你煲汤_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191207_网易娱乐频道_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191207_爱奇艺尖叫之夜_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191206_VOGUEME_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191202_头条网娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191117_央视网青年_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191115_狐厂大拷问_XZ-MISC-1.mp4",
+            "https://www.youtube.com/watch?v=qf-QGkyd57I",
+            "https://assets.xz-studio-gallery.com/full/20191104_时尚芭莎_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191030_DY_抖音美好奇妙夜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191030_V视界大会_XZ-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191029_DY_抖音美好奇妙夜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191029_DY_抖音美好奇妙夜_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191028_DY_抖音美好奇妙夜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191028_DY_抖音美好奇妙夜_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191027_IF视频_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191025_In_Famous视界_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191025_爱奇艺时尚_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191025_FUNer视频_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191021_DY_抖音美好奇妙夜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191020_DY_抖音美好奇妙夜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191020_DY_抖音美好奇妙夜_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191019_DY_抖音美好奇妙夜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191019_有数青年_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191018_有只小婉_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191018_诛仙_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191015_爱思不si_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20191010_诛仙_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190925_GUCCI_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190923_COSMO_XZ-MISC-11.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190923_嘉人米兰_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190923_COSMO米兰_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190920_OLAY_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190919_界面Vnews_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190919_OLAY采访_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190917_诛仙_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190917_ONE一个_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190915_诛仙_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190915_诛仙_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190915_诛仙_XZ-MISC-4.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190915_诛仙_XZ-MISC-5.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190914_诛仙_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190914_诛仙_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190914_诛仙_XZ-MISC-4.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190914_诛仙_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190913_诛仙_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190913_诛仙_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190913_诛仙_XZ-MISC-4.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190912_诛仙_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190912_诛仙_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190912_诛仙_XZ-MISC-11.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190911_诛仙澎湃有戏_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190911_诛仙_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190910_新浪电影_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190908_OLAY_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190826_我想和世界谈谈_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190826_我想和世界谈谈_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190818_新闻当事人_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190818_新闻当事人_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190818_新闻当事人_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190817_四度_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190808_南都娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190808_企鹅FM_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190807_百度APP_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190802_精彩OK_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190730_南都娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190729_网易娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190729_大眼影娱_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190729_大眼影娱_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190729_大眼影娱_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190725_嘉人_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190724_上海电视互动公社_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190723_上海电视互动公社_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190716_乐鱼视频_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190715_戏客_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190713_网易娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190712_腾讯新闻星推榜_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190711_陈情令采访花絮_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190711_新浪时尚包子铺_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190708_腾讯新闻星推荐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190707_精品购物指南_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190705_芭莎电影_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190705_陈情令采访花絮_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190705_陈情令_XZ-MISC-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190702_OnlyLady女人志_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20190701_陈情令_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20181219_腾讯A咖时尚_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20181208_ELLEMEN新青年_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20181028_道仔社_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20180926_精品购物指南_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20180921_腾讯A咖时尚_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20180514_doki_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20170321_橘子娱乐_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20160129_腾讯娱乐_XZ-MISC-1.mp4"
+          ]
         },
         "variety": {
           "name": "Variety",
           "nameZh": "综艺",
+          "urls": [
+            "https://assets.xz-studio-gallery.com/full/20210819_李宁_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240531_李宁_XZ-STU-1.mp4",
+            "https://www.youtube.com/watch?v=Rh4VxCssRLw",
+            "https://assets.xz-studio-gallery.com/full/20210117_奇妙之城_XZ-MISC-1.mp4",
+            "https://www.youtube.com/watch?v=e601XtWLcr8"
+          ]
+        },
+        "vlog": {
+          "name": "VLOG",
+          "nameZh": "",
           "urls": []
         }
       };
@@ -3123,8 +3374,7 @@
         const panel = document.getElementById('curationExportPanel');
         if (panel) panel.classList.toggle('hidden', !_curationMode);
         console.log('Curation mode:', _curationMode ? 'ON' : 'OFF');
-        renderCuratedPlaylistChips();
-        if (_activeCuratedKey) showCuratedPlaylist(_activeCuratedKey);
+        renderCuratedCollectionBoxes();
       };
 
       function curatedPlaylistKeys() {
@@ -3137,19 +3387,9 @@
         return [...new Set([...shipped, ...draft])];
       }
       function curatedPlaylistLabel(key) {
-        if (CURATED_PLAYLISTS[key]) return `${CURATED_PLAYLISTS[key].name} / ${CURATED_PLAYLISTS[key].nameZh}`;
-        return key;
-      }
-
-      let _activeCuratedKey = null;
-      function renderCuratedPlaylistChips() {
-        const wrap = document.getElementById('curatedPlaylistChips');
-        if (!wrap) return;
-        const keys = curatedPlaylistKeys();
-        wrap.innerHTML = keys.map(k => {
-          const count = curatedPlaylistUrls(k).length;
-          return `<div class="source-chip${k === _activeCuratedKey ? ' active' : ''}" onclick="showCuratedPlaylist('${k}')"><span class="chip-en">${curatedPlaylistLabel(k)}</span><span class="chip-zh">${count} items</span></div>`;
-        }).join('') || '<div style="opacity:0.6;font-size:12px;">No curated collections yet.</div>';
+        const c = CURATED_PLAYLISTS[key];
+        if (!c) return key;
+        return c.nameZh ? `${c.name} / ${c.nameZh}` : c.name;
       }
 
       // photoData can hold more than one entry per url (same media cross-posted
@@ -3164,26 +3404,72 @@
         });
       }
 
-      function showCuratedPlaylist(key) {
-        _activeCuratedKey = key;
-        renderCuratedPlaylistChips();
-        const items = curatedCollectionItems(key);
-
-        const actions = document.getElementById('curatedPlaylistActions');
-        if (actions) {
-          const videoCount = items.filter(p => isVideoEntry(p)).length;
-          actions.innerHTML = videoCount ? `
-            <button class="btn" onclick="playCuratedCollection('${key}')">▶ Play collection · 播放本合集 (${videoCount})</button>
-            <button class="btn" onclick="addCuratedToPlaylist('${key}')">＋ Add to My Playlist · 加入我的播放列表</button>
-          ` : '';
+      // Collections render as stacked collapsible boxes (same .timeline-year
+      // component the gallery search results use — see buildGalleryResultCardHTML)
+      // rather than a tab switcher, since a tab row doesn't scale if more
+      // collections get added later.
+      function renderCuratedCollectionBoxes() {
+        const wrap = document.getElementById('curatedCollectionBoxes');
+        if (!wrap) return;
+        const keys = curatedPlaylistKeys();
+        if (!keys.length) {
+          wrap.innerHTML = '<div class="timeline-empty"><h3>No curated collections yet.</h3></div>';
+          return;
         }
+        // All collections start collapsed — expandedYears only gets a 'c_<key>'
+        // entry once the visitor actually clicks a box open (via toggleYear).
+        wrap.innerHTML = keys.map(buildCollectionBoxHTML).join('');
+        keys.forEach(k => { if (expandedYears.has('c_' + k)) renderYearPage('c_' + k); });
+      }
 
-        const grid = document.getElementById('curatedPlaylistGrid');
-        if (!grid) return;
-        grid.innerHTML = items.length
-          ? items.map(renderPhotoCard).join('')
-          : '<div class="timeline-empty"><h3>Empty</h3><p>Nothing curated here yet.</p></div>';
-        grid.querySelectorAll('.lazy-image[data-src]').forEach(img => { if (imageObserver) imageObserver.observe(img); });
+      function buildCollectionBoxHTML(key) {
+        const items = curatedCollectionItems(key);
+        const boxKey = 'c_' + key;
+        const videoCount = items.filter(p => isVideoEntry(p)).length;
+        const previewPhotos = items.slice(0, 4);
+        const previewHTML = `
+                    <div class="year-preview">
+                        ${previewPhotos.map((p) => `<img src="${generateThumbnail(p.url, "m")}" alt="Preview" class="preview-thumb">`).join("")}
+                        ${items.length > 4 ? `<div class="preview-more">+${items.length - 4}</div>` : ""}
+                    </div>`;
+        const expandedClass = expandedYears.has(boxKey) ? "expanded" : "";
+        const actionsHTML = videoCount ? `
+                            <div style="text-align:center;margin-bottom:10px;">
+                                <button class="btn collection-action-btn" onclick="event.stopPropagation();playCuratedCollection('${key}')">▶ Play collection · 播放本合集 (${videoCount})</button>
+                                <button class="btn collection-action-btn" onclick="event.stopPropagation();addCuratedToPlaylist('${key}')">＋ Add to My Playlist · 加入我的播放列表</button>
+                            </div>` : '';
+        return `
+                    <div class="timeline-year ${expandedClass}" data-year="${boxKey}">
+                        <div class="timeline-year-header" onclick="toggleYear('${boxKey}')">
+                            <div class="year-header-content">
+                                <div class="year-header-top">
+                                    <span class="year-title"><span class="gallery-id-badge">${curatedPlaylistLabel(key)}</span></span>
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <span class="timeline-year-count">${mediaCountLabel(items)}</span>
+                                        <span class="expand-icon">▼</span>
+                                    </div>
+                                </div>
+                                <div class="year-preview-zone">
+                                    ${previewHTML}
+                                    <div class="year-hint">Click thumbnails for high-res · 点击缩略图打开高清</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-year-content">
+                            ${actionsHTML}
+                            <div class="year-controls">
+                                <label for="per-page-${boxKey}">Photos per page:</label>
+                                <select id="per-page-${boxKey}" onchange="changePhotosPerPage('${boxKey}', this.value)">
+                                    <option value="21">21</option>
+                                    <option value="42">42</option>
+                                    <option value="84">84</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                            <div class="year-photos-grid" id="photos-${boxKey}"></div>
+                            <div class="pagination-nav" id="pagination-nav-${boxKey}"></div>
+                        </div>
+                    </div>`;
       }
 
       // Ephemeral playback — plays straight through the collection's own videos
@@ -3250,7 +3536,7 @@
           plToast(`Added to "${key}"`);
         }
         curationSaveDraft(draft);
-        renderCuratedPlaylistChips();
+        renderCuratedCollectionBoxes();
         syncAllCurationButtons();
       }
 
@@ -4258,10 +4544,14 @@
         const { perPage, currentPage } = yearPaginationSettings[year];
 
         // currentRenderData already reflects every active filter/search (see
-        // applyAllFilters) — this just slices it by year, or by gallery when
-        // `year` is a "g_<galleryId>" key from the grouped results view.
+        // applyAllFilters) — this just slices it by year, by gallery when
+        // `year` is a "g_<galleryId>" key from the grouped results view, or by
+        // curated collection membership when it's a "c_<collectionKey>" key
+        // (a collection's own item set, independent of the active search/filter).
         const yearPhotos = String(year).startsWith('g_')
           ? currentRenderData.filter((p) => p._gallery === year.slice(2))
+          : String(year).startsWith('c_')
+          ? curatedCollectionItems(year.slice(2))
           : currentRenderData.filter((p) => p.year === year);
 
         const totalPhotos = yearPhotos.length;
@@ -4665,7 +4955,7 @@
                         <div class="timeline-year-header" onclick="toggleYear('${key}')">
                             <div class="year-header-content">
                                 <div class="year-header-top">
-                                    <span class="year-title"><span class="gallery-id-badge" style="background:${g.color};">${g.label}</span></span>
+                                    <span class="year-title"><span class="gallery-id-badge">${g.label}</span></span>
                                     <div style="display: flex; align-items: center; gap: 4px;">
                                         <span class="timeline-year-count">${mediaCountLabel(photos)}</span>
                                         <span class="expand-icon">▼</span>
@@ -4764,14 +5054,7 @@
           .getElementById(section + "-section")
           .classList.remove("hidden");
         if (section === "playlists") {
-          renderCuratedPlaylistChips();
-          if (!_activeCuratedKey) {
-            const keys = curatedPlaylistKeys();
-            // Default to the first non-empty collection so the tab doesn't open
-            // blank; fall back to the first key at all if every one is empty.
-            _activeCuratedKey = keys.find(k => curatedPlaylistUrls(k).length > 0) || keys[0] || null;
-          }
-          if (_activeCuratedKey) showCuratedPlaylist(_activeCuratedKey);
+          renderCuratedCollectionBoxes();
         }
       }
 
