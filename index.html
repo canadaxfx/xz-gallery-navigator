@@ -2823,12 +2823,15 @@
       }
       function plSave() { localStorage.setItem(PL_KEY, JSON.stringify(playlist)); }
 
+      // Dedup by url (the actual R2/CDN asset), not id — the same physical file
+      // can appear under a different regenerated id per gallery/reload, but two
+      // entries pointing at the same url are the same media and should count once.
       function plCardAdd(id) {
           const photo = photoData.find(p => p.id === id);
           if (!photo) return;
-          const already = playlist.some(p => p.id === id);
+          const already = playlist.some(p => p.url === photo.url);
           if (already) {
-              playlist = playlist.filter(p => p.id !== id);
+              playlist = playlist.filter(p => p.url !== photo.url);
               plSave(); plRender(); plToast('已从播放列表移除');
           } else {
               playlist.push(photo);
@@ -2848,13 +2851,14 @@
       function plSyncAllCards() {
           document.querySelectorAll('[id^="plcadd-"]').forEach(btn => {
               const id = parseInt(btn.id.replace('plcadd-', ''));
-              plSyncCardBtn(btn, playlist.some(p => p.id === id));
+              const photo = photoData.find(p => p.id === id);
+              plSyncCardBtn(btn, !!photo && playlist.some(p => p.url === photo.url));
           });
       }
 
       function addAllFilteredVideos() {
           let added = 0;
-          filteredVideosCache.forEach(p => { if (!playlist.some(x => x.id === p.id)) { playlist.push(p); added++; } });
+          filteredVideosCache.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
           plSave(); plRender();
           plToast(added ? `已加入 ${added} 个视频` : '视频已全在播放列表中');
       }
@@ -2862,14 +2866,14 @@
       function addYearToPlaylist(year) {
           const videos = filteredVideosCache.filter(p => String(p.year) === String(year));
           let added = 0;
-          videos.forEach(p => { if (!playlist.some(x => x.id === p.id)) { playlist.push(p); added++; } });
+          videos.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
           plSave(); plRender();
           plToast(added ? `已加入 ${year} 年 ${added} 个视频` : `${year} 年视频已全在播放列表中`);
       }
 
-      function plRemove(id, e) {
+      function plRemove(url, e) {
           e.stopPropagation();
-          playlist = playlist.filter(p => p.id !== id);
+          playlist = playlist.filter(p => p.url !== url);
           plSave(); plRender();
           if (playlistMode) {
               if (!playlist.length) { closeModal(); return; }
@@ -2903,7 +2907,7 @@
                       <div class="playlist-item-title">${p.groupName || p.date}</div>
                       <div class="playlist-item-meta">${p.date}${p.duration ? ' · ' + fmtDuration(p.duration) : ''}</div>
                   </div>
-                  <button class="playlist-remove-btn" onclick="plRemove(${p.id}, event)">×</button>
+                  <button class="playlist-remove-btn" onclick="plRemove(${jsStr(p.url)}, event)">×</button>
               </div>`).join('');
           // sync card "+" buttons
           document.querySelectorAll('[id^="plcadd-"]').forEach(btn => {
