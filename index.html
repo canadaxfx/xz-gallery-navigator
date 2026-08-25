@@ -3057,9 +3057,50 @@
          Start empty; build them with curation mode (below), then paste the exported
          object here before pushing. */
       const CURATED_PLAYLISTS = {
-        stages:     { name: 'Stages',     nameZh: '舞台', urls: [] },
-        interviews: { name: 'Interviews', nameZh: '采访', urls: [] },
-        variety:    { name: 'Variety',    nameZh: '综艺', urls: [] },
+        "stages": {
+          "name": "Stages",
+          "nameZh": "舞台",
+          "urls": [
+            "https://assets.xz-studio-gallery.com/full/20241128_晚安_XZ-STU-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241125_DY_不要回头MV_XZ-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241120_XZ-Weibo-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241114_都一样_XZ-STU-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241112_XZ-Weibo-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241122_灯塔纯享版_XZ-STU-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241121_漂流纯享版_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240210_北京台春晚如愿_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240204_网络视听盛典同路人_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260101_得闲谨制跨年舞台_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260101_DY_东方卫视跨年不要回头_XZ-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260101_东方卫视跨年现在不跳舞要干嘛_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250929_整晚的音乐_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260822_那英演唱会_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260822_那英演唱会_XZ-MISC-2.mp4",
+            "https://assets.xz-studio-gallery.com/full/20260217_北京台春晚岁岁年年_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210531_沸腾之夜让我留在你身边_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210305_冬梦_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20210212_XZ-Weibo-3.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241217_异乡人_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241130_野子_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20241218_我们都是追梦人_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250129_北京台春晚灯塔_XZ-STU-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240920_北京文化论坛月亮代表我的心_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20250828_我的中国心_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240923_湾区升明月这世界那么多人_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20240923_湾区升明月往事随风_XZ-MISC-1.mp4",
+            "https://assets.xz-studio-gallery.com/full/20230629_湾区升明月潇洒走一回_XZ-1.mp4"
+          ]
+        },
+        "interviews": {
+          "name": "Interviews",
+          "nameZh": "采访",
+          "urls": []
+        },
+        "variety": {
+          "name": "Variety",
+          "nameZh": "综艺",
+          "urls": []
+        }
       };
 
       const CURATION_DRAFT_KEY = 'xzCuratedDraft';
@@ -4644,6 +4685,12 @@
           .classList.remove("hidden");
         if (section === "playlists") {
           renderCuratedPlaylistChips();
+          if (!_activeCuratedKey) {
+            const keys = curatedPlaylistKeys();
+            // Default to the first non-empty collection so the tab doesn't open
+            // blank; fall back to the first key at all if every one is empty.
+            _activeCuratedKey = keys.find(k => curatedPlaylistUrls(k).length > 0) || keys[0] || null;
+          }
           if (_activeCuratedKey) showCuratedPlaylist(_activeCuratedKey);
         }
       }
