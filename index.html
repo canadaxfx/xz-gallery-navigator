@@ -583,7 +583,7 @@
       .badge-wechat {
         background-color: #07C160;
       }
-      .badge-youtube {
+      .badge-youtube-src {
         background-color: #FF0000;
       }
       .badge-bilibili {
@@ -835,6 +835,9 @@
         transform: translateY(-3px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
       }
+      .audio-card-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg,#2a2218 0%,#1a1510 100%); }
+      .audio-card-placeholder .acp-note { font-size:44px; opacity:0.75; }
+      .audio-card-placeholder .acp-label { font-size:10px; font-weight:600; letter-spacing:0.08em; color:rgba(255,255,255,0.45); text-transform:uppercase; }
       .timeline-photo img {
         width: 100%;
         height: 100%;
@@ -2367,8 +2370,8 @@
               <option value="qq">QQ</option>
               <option value="wx">WX</option>
               <option value="mgtv">MGTV</option>
-              <option value="ua">U/A</option>
               <option value="other">Others</option>
+              <option value="ua">U/A</option>
             </select>
 
             <select id="filterYear" onchange="applyDateFilter()">
@@ -2496,6 +2499,10 @@
             class="modal-photo hidden"
             playsinline
           ></video>
+          <div id="modalAudioWrap" class="hidden" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:260px">
+              <div style="font-size:64px;opacity:0.5">🎵</div>
+              <audio id="modalAudio" controls style="width:min(360px,80vw);outline:none"></audio>
+          </div>
           <div id="badgesRow" style="position:absolute;bottom:0;left:10px;display:flex;gap:6px;align-items:center;z-index:11;">
               <span id="badgeQuality" class="badge-quality hidden"></span>
               <a id="badgeYT" class="badge-youtube hidden" target="_blank" rel="noopener">YouTube ↗</a>
@@ -3605,7 +3612,7 @@
       function setPlatformBtnBehavior(btn, mainLink, extraLinks, primarySource) {
         const existingPop = document.getElementById('platformPopover');
         if (existingPop) existingPop.style.display = 'none';
-        const lmap = {weibo:'Weibo 微博',douyin:'Douyin 抖音',youtube:'YouTube',bilibili:'Bilibili',ins:'Instagram',xiaohongshu:'RedNote 小红书',xhs:'RedNote 小红书',rednote:'RedNote 小红书'};
+        const lmap = {weibo:'Weibo 微博',douyin:'Douyin 抖音',youtube:'YouTube',bilibili:'Bilibili',ins:'Instagram',xiaohongshu:'RedNote 小红书',xhs:'RedNote 小红书',rednote:'RedNote 小红书',qq:'QQ 腾讯',wx:'WeChat 微信',wechat:'WeChat 微信',mgtv:'MGTV 芒果TV'};
         const links = [];
         const w = mainLink ? String(mainLink).trim() : '';
         if (w) links.push({label: lmap[primarySource] || 'Weibo 微博', url: /^https?/i.test(w) ? w : 'https://' + w});
@@ -3690,7 +3697,7 @@
             douyin:      { cls: 'badge-douyin',   text: 'DOUYIN' },
             twitter:     { cls: 'badge-twitter',  text: 'TWITTER' },
             ins:         { cls: 'badge-instagram','text': 'INS' },
-            youtube:     { cls: 'badge-youtube',  text: 'YOUTUBE' },
+            youtube:     { cls: 'badge-youtube-src',  text: 'YOUTUBE' },
             bilibili:    { cls: 'badge-bilibili', text: 'BILI' },
             wx:          { cls: 'badge-wechat',   text: 'WECHAT' },
             qq:          { cls: 'badge-other',    text: 'QQ' },
@@ -3713,6 +3720,7 @@
             Object.keys(photo.platform_links).forEach(_addBadge);
         }
         if (!_badgeHtml.length) _addBadge(rawSource);
+        sourceBadge.style.cssText = 'display:flex;align-items:center;gap:5px';
         sourceBadge.innerHTML = _badgeHtml.join('');
 
         // Row 2: date · first tag
@@ -3724,11 +3732,12 @@
         weiboBtn.style.background = ""; // Reset inline style to let CSS take over
         setPlatformBtnBehavior(weiboBtn, photo.link, photo.platform_links, rawSource);
 
-        // --- 5. Handle Video vs Photo Display ---
+        // --- 5. Handle Video vs Photo vs Audio Display ---
         // _isVid = mp4 files only (for playlist/stats); isMotionUrl = mov/gif (play in modal but managed as photos)
         const _isVid = isRealVideo(photo);
         const _isMotion = isMotionUrl(photo.url);
         const _isYT = isYouTubeUrl(photo.url);
+        const _isAudio = isAudioUrl(photo.url);
 
         let ytFrame = document.getElementById('modalYouTube');
         if (!_isYT && ytFrame) {
@@ -3754,12 +3763,24 @@
           ytFrame.src = `https://www.youtube.com/embed/${getYouTubeId(photo.url)}?autoplay=1&rel=0`;
         } else if (_isVid || isPlayableVideo(photo.url) || isClip(photo)) {
           imgElement.classList.add("hidden");
+          document.getElementById('modalAudioWrap').classList.add('hidden');
+          const _audioElV = document.getElementById('modalAudio');
+          _audioElV.pause(); _audioElV.src = '';
           videoElement.classList.remove("hidden");
           videoElement.src = photo.url;
           videoElement.loop = !playlistMode;
           videoElement.onended = playlistMode ? () => navigatePhoto(1) : null;
           vcSetup(videoElement);
           videoElement.play().catch(e => console.log("Video autoplay prevented"));
+        } else if (_isAudio) {
+          imgElement.classList.add("hidden");
+          if (videoElement) { videoElement.pause(); videoElement.src = ''; videoElement.classList.add('hidden'); }
+          const audioWrap = document.getElementById('modalAudioWrap');
+          const audioEl   = document.getElementById('modalAudio');
+          audioWrap.classList.remove('hidden');
+          audioWrap.style.display = 'flex';
+          audioEl.src = photo.url;
+          audioEl.play().catch(() => {});
         } else {
           if (videoElement) {
             videoElement.pause();
@@ -3767,6 +3788,9 @@
             videoElement.src = "";
             videoElement.classList.add("hidden");
           }
+          const _audioElI = document.getElementById('modalAudio');
+          _audioElI.pause(); _audioElI.src = '';
+          document.getElementById('modalAudioWrap').classList.add('hidden');
           imgElement.classList.remove("hidden");
           imgElement.src = photo.url;
         }
@@ -3898,10 +3922,12 @@
 
         container.innerHTML = currentPhotoGroup
           .map(
-            (photo, index) => `
-        <img src="${generateThumbnail(photo.url, "m")}" 
-             class="thumbnail ${index === currentPhotoIndex ? "active" : ""}" 
-             onclick="goToPhoto(${index})" 
+            (photo, index) => isAudioUrl(photo.url)
+            ? `<div class="thumbnail ${index === currentPhotoIndex ? 'active' : ''}" onclick="goToPhoto(${index})" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2218,#1a1510);font-size:22px;cursor:pointer;">🎵</div>`
+            : `
+        <img src="${generateThumbnail(photo.url, "m")}"
+             class="thumbnail ${index === currentPhotoIndex ? "active" : ""}"
+             onclick="goToPhoto(${index})"
              alt="Thumbnail ${index + 1}"
              loading="lazy">
     `,
@@ -4021,6 +4047,10 @@
           videoElement.onended = null;
           videoElement.src = "";
         }
+        const audioEl = document.getElementById('modalAudio');
+        if (audioEl) { audioEl.pause(); audioEl.src = ''; }
+        const audioWrap = document.getElementById('modalAudioWrap');
+        if (audioWrap) { audioWrap.classList.add('hidden'); audioWrap.style.display = ''; }
         const ytFrame = document.getElementById('modalYouTube');
         if (ytFrame) {
           ytFrame.src = '';
@@ -4288,20 +4318,23 @@
             const motionBadge = isMotion
               ? '<span style="position:absolute;right:4px;top:4px;background:rgba(0,0,0,0.65);color:white;border-radius:6px;padding:1px 4px;font-size:9px;font-weight:700;">' + ext + '</span>'
               : "";
-            const durBadge = ((isVideoEntry(photo) || isClip(photo)) && photo.duration)
+            const durBadge = ((isVideoEntry(photo) || isClip(photo) || isAudioUrl(photo.url)) && photo.duration)
               ? '<div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.65);color:white;border-radius:4px;padding:1px 3px;font-size:10px;font-weight:600;z-index:2;letter-spacing:0.2px;">' + fmtDuration(photo.duration) + '</div>'
               : "";
-            const sizeBadge = (!isVideoEntry(photo) && !isClip(photo) && photo.size_mb)
+            const sizeBadge = (!isVideoEntry(photo) && !isClip(photo) && !isAudioUrl(photo.url) && photo.size_mb)
               ? (() => { const sz = photo.size_mb >= 1 ? photo.size_mb.toFixed(1) + 'M' : Math.round(photo.size_mb * 1024) + 'K'; return '<div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.55);color:white;border-radius:4px;padding:1px 3px;font-size:9px;font-weight:600;z-index:2;letter-spacing:0.2px;">' + sz + '</div>'; })()
               : "";
+            const isAudio = isAudioUrl(photo.url);
             return `
             <div class="timeline-photo" onclick="openPhotoModal(${photo.id})">
-                ${videoIcon}
+                ${isAudio ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:white;border-radius:50%;width:24px;height:24px;text-align:center;line-height:24px;font-size:12px;z-index:2;">♪</div>' : videoIcon}
                 ${durBadge}${sizeBadge}
-                <img data-src="${generateThumbnail(photo.url, "m")}"
+                ${isAudio
+                  ? `<div class="audio-card-placeholder"><span class="acp-note">🎵</span><span class="acp-label">Audio</span></div>`
+                  : `<img data-src="${generateThumbnail(photo.url, "m")}"
                      data-fullsize="${photo.url}"
                      alt="Photo ${photo.id}"
-                     class="lazy-image">
+                     class="lazy-image">`}
                 ${motionBadge}
                 ${isVideo ? `<button class="pl-card-add" id="plcadd-${photo.id}" onclick="event.stopPropagation();plCardAdd(${photo.id})"><b>＋</b> Playlist</button>` : ''}
                 ${_curationMode ? `<button id="curadd-${photo.id}" title="Add to curated collection" style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:4px;padding:1px 5px;font-size:11px;cursor:pointer;z-index:4;" onclick="event.stopPropagation();toggleCurationItem(${jsStr(photo.url)})">${isUrlCurated(photo.url) ? '−' : '✚'}</button>` : ''}
@@ -5057,6 +5090,7 @@
 
       function isVideoUrl(url) { return /\.mp4$/i.test(url); }
       function isYouTubeUrl(url) { return /youtube\.com\/watch|youtu\.be\//.test(url); }
+      function isAudioUrl(url) { return /\.mp3$/i.test(url); }
 
       // --- Download Lock ---
       const DL_HASH = '858a4b33bd3546c160fb7a0d42ba20d03da98635f5405dc8d0ec9689c1a3a5ef';
