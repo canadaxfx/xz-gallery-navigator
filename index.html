@@ -1065,8 +1065,8 @@
         color: var(--gold);
       }
       .date-select-wrapper select{display:none}
-      .csel{position:relative;flex:1;min-width:0}
-      .csel-btn{width:100%;background:transparent;border:none;outline:none;font-size:13px;font-weight:600;color:#555;cursor:pointer;padding:5px 2px;display:flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap;font-family:inherit}
+      .csel{position:relative;flex:1;min-width:0;display:flex}
+      .csel-btn{width:100%;height:100%;box-sizing:border-box;background:transparent;border:none;outline:none;font-size:13px;font-weight:600;color:#555;cursor:pointer;padding:5px 2px;display:flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap;font-family:inherit}
       .csel-btn .csel-arrow{font-size:9px;opacity:0.6;flex-shrink:0}
       .csel-list{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);z-index:9999;width:max-content;max-width:150px;max-height:240px;overflow-y:auto;border:1px solid var(--border)}
       .csel:last-child .csel-list{left:auto;right:0}
