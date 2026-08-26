@@ -363,7 +363,7 @@
         font-style: normal;
         letter-spacing: 0.08em;
         color: rgba(255, 255, 255, 0.92);
-        text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.35);
+        text-shadow: none;
       }
       /* Keep the ❁ trigger as a plain glyph, not the CJK serif above */
       .title-zh #secretTrigger {
@@ -563,19 +563,31 @@
         background-color: #f6b60d;
         border: 1px solid #ffe082;
       }
+      .badge-oasis {
+        background-color: #2CB353;
+      }
       /* REDNOTE: Changed to Standard Red */
       .badge-rednote {
         background-color: #ff2442;
         border: 1px solid #ff8fab;
       }
       .badge-instagram {
-        background-color: #e1306c;
+        background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
       }
       .badge-twitter {
         background-color: #1da1f2;
       }
       .badge-douyin {
         background-color: #000000;
+      }
+      .badge-wechat {
+        background-color: #07C160;
+      }
+      .badge-youtube {
+        background-color: #FF0000;
+      }
+      .badge-bilibili {
+        background-color: #00A1D6;
       }
       .badge-other {
         background-color: #999999;
@@ -2325,7 +2337,7 @@
               <span class="mini-nav-dot">·</span>
               <a href="https://xz-hd-gallery-misc.pages.dev/" target="_blank" rel="noopener">HD Misc 高清-其他</a>
               <span class="mini-nav-dot">·</span>
-              <a href="https://xz-social-media-archive.pages.dev/" target="_blank" rel="noopener">Archive 社媒存档</a>
+              <a href="https://xz-social-media-archive.pages.dev/" target="_blank" rel="noopener">Social Archive 社媒存档</a>
             </div>
           </nav>
         </div>
@@ -2348,8 +2360,15 @@
             <select id="filterSource" onchange="applyDateFilter()">
               <option value="all">Platform</option>
               <option value="weibo">Weibo</option>
+              <option value="oasis">Oasis</option>
               <option value="douyin">Douyin</option>
+              <option value="instagram">Instagram</option>
               <option value="rednote">RedNote</option>
+              <option value="qq">QQ</option>
+              <option value="wx">WX</option>
+              <option value="mgtv">MGTV</option>
+              <option value="ua">U/A</option>
+              <option value="other">Others</option>
             </select>
 
             <select id="filterYear" onchange="applyDateFilter()">
@@ -3665,18 +3684,22 @@
         // Row 1: all platform badges
         const _BADGE_DEFS = {
             weibo:       { cls: 'badge-weibo',    text: 'WEIBO' },
+            oasis:       { cls: 'badge-oasis',    text: 'OASIS' },
             rednote:     { cls: 'badge-rednote',  text: 'REDNOTE' },
             xiaohongshu: { cls: 'badge-rednote',  text: 'REDNOTE' },
             douyin:      { cls: 'badge-douyin',   text: 'DOUYIN' },
             twitter:     { cls: 'badge-twitter',  text: 'TWITTER' },
-            ins:         { cls: 'badge-other',    text: 'INS' },
-            instagram:   { cls: 'badge-instagram','text': 'INS' },
-            youtube:     { cls: 'badge-other',    text: 'YOUTUBE' },
-            bilibili:    { cls: 'badge-other',    text: 'BILI' },
+            ins:         { cls: 'badge-instagram','text': 'INS' },
+            youtube:     { cls: 'badge-youtube',  text: 'YOUTUBE' },
+            bilibili:    { cls: 'badge-bilibili', text: 'BILI' },
+            wx:          { cls: 'badge-wechat',   text: 'WECHAT' },
+            qq:          { cls: 'badge-other',    text: 'QQ' },
+            mgtv:        { cls: 'badge-other',    text: 'MGTV' },
+            ua:          { cls: 'badge-other',    text: 'U/A' },
         };
         const _seenBadges = new Set();
         const _badgeHtml = [];
-        const _normPlat = p => { const k = String(p).toLowerCase().trim(); return (k==='xiaohongshu'||k==='xhs') ? 'rednote' : k==='instagram' ? 'ins' : k; };
+        const _normPlat = p => { const k = String(p).toLowerCase().trim(); return (k==='xiaohongshu'||k==='xhs') ? 'rednote' : k==='instagram' ? 'ins' : k==='wechat' ? 'wx' : k; };
         const _addBadge = (k) => {
             const key = _normPlat(k);
             if (_seenBadges.has(key)) return;
@@ -4663,6 +4686,13 @@
                elFilterDay.value !== 'all' || elFilterSource.value !== 'all';
       }
 
+      // "Others" in the platform dropdown is a catch-all for rare one-off values
+      // (baidu, 央视频, etc.) that don't have their own dropdown option — anything
+      // NOT in this known set counts as "other". Keep in sync with the explicit
+      // <option> values in #filterSource and the synonyms applied below.
+      const _KNOWN_PLATFORMS = new Set(['weibo', 'oasis', 'douyin', 'ins', 'instagram',
+        'rednote', 'xiaohongshu', 'xhs', 'qq', 'wx', 'wechat', 'mgtv', 'ua']);
+
       function matchesActiveFilters(item) {
         if (currentGalleryFilter !== 'all' && item._gallery !== currentGalleryFilter) return false;
         if (currentMediaFilter === 'video' && !isVideoEntry(item)) return false;
@@ -4689,8 +4719,16 @@
             Object.keys(item.platform_links).forEach(k => _itemPlatforms.add(String(k).toLowerCase()));
           }
           if (!_itemPlatforms.size) _itemPlatforms.add('weibo');
-          if (_itemPlatforms.has('xiaohongshu')) _itemPlatforms.add('rednote');
-          if (!_itemPlatforms.has(sVal)) return false;
+          if (_itemPlatforms.has('xiaohongshu') || _itemPlatforms.has('xhs')) _itemPlatforms.add('rednote');
+          if (_itemPlatforms.has('ins')) _itemPlatforms.add('instagram');
+          if (_itemPlatforms.has('instagram')) _itemPlatforms.add('ins');
+          if (_itemPlatforms.has('wechat')) _itemPlatforms.add('wx');
+          if (_itemPlatforms.has('wx')) _itemPlatforms.add('wechat');
+          if (sVal === 'other') {
+            if ([..._itemPlatforms].some(p => _KNOWN_PLATFORMS.has(p))) return false;
+          } else if (!_itemPlatforms.has(sVal)) {
+            return false;
+          }
         }
         return true;
       }
