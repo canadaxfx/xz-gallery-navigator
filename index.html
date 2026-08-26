@@ -392,16 +392,21 @@
         line-height: 1.5;
       }
       .mini-nav-label {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
         color: var(--gold);
         font-weight: 600;
         letter-spacing: 0.03em;
       }
+      /* Flexbox-centered against the label's own box height rather than
+         vertical-align/font-baseline tuning — see Studio Gallery's CLAUDE.md for why. */
       .mini-nav-arrow {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
         font-size: 1.6em;
-        line-height: 0;
-        vertical-align: 0.05em;
+        line-height: 1;
       }
       .mini-nav-links {
         white-space: nowrap;
