@@ -3297,12 +3297,11 @@
                         <div class="timeline-year-content">
                             ${actionsHTML}
                             <div class="year-controls">
-                                <label for="per-page-${boxKey}">Photos per page:</label>
                                 <select id="per-page-${boxKey}" onchange="changePhotosPerPage('${boxKey}', this.value)">
-                                    <option value="21">21</option>
-                                    <option value="42">42</option>
-                                    <option value="84">84</option>
-                                    <option value="all">All</option>
+                                    <option value="21">21 / page</option>
+                                    <option value="42">42 / page</option>
+                                    <option value="84">84 / page</option>
+                                    <option value="all">Show All</option>
                                 </select>
                             </div>
                             <div class="year-photos-grid" id="photos-${boxKey}"></div>
@@ -4237,6 +4236,16 @@
       }
 
       function buildYearCardHTML(year, photos) {
+        // Distinct months present, in the order they actually occur (photos within
+        // a year are sorted newest-first by initializeTimeline, so this is already
+        // reverse-chronological — no need to hardcode a month-name ordering table).
+        const distinctMonths = [...new Set(photos.map((p) => p.month))].filter(Boolean);
+        const monthJumpHTML = distinctMonths.length > 1
+          ? `<select id="month-jump-${year}" onchange="jumpToMonth('${year}', this.value)">
+                                    <option value="">Jump to month ▾</option>
+                                    ${distinctMonths.map((m) => `<option value="${m}">${m}</option>`).join("")}
+                                </select>`
+          : '';
         const previewPhotos = photos.slice(0, 4);
         const previewHTML = `
                     <div class="year-preview">
@@ -4265,12 +4274,12 @@
                         </div>
                         <div class="timeline-year-content">
                             <div class="year-controls">
-                                <label for="per-page-${year}">Photos per page:</label>
+                                ${monthJumpHTML}
                                 <select id="per-page-${year}" onchange="changePhotosPerPage('${year}', this.value)">
-                                    <option value="21">21</option>
-                                    <option value="42">42</option>
-                                    <option value="84">84</option>
-                                    <option value="all">All</option>
+                                    <option value="21">21 / page</option>
+                                    <option value="42">42 / page</option>
+                                    <option value="84">84 / page</option>
+                                    <option value="all">Show All</option>
                                 </select>
                             </div>
                             <div class="year-photos-grid" id="photos-${year}"></div>
@@ -4400,6 +4409,52 @@
         document
           .getElementById(`pagination-nav-${year}`)
           .scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      // "Jump to year" dropdown on gallery result cards — finds the first item
+      // belonging to the chosen year and pages straight there, instead of clicking
+      // through page numbers one at a time on a large (hundreds-of-items) result set.
+      // Relies on `photoData` (and therefore `currentRenderData`, which only ever
+      // filters it) being globally date-sorted, so every year's items form one
+      // contiguous run — true today via commitPhotoData's sort.
+      function jumpToYear(key, yearValue) {
+        if (!yearValue) return;
+        const yearPhotos = String(key).startsWith('g_')
+          ? currentRenderData.filter((p) => p._gallery === key.slice(2))
+          : String(key).startsWith('c_')
+          ? curatedCollectionItems(key.slice(2))
+          : currentRenderData.filter((p) => p.year === key);
+        const idx = yearPhotos.findIndex((p) => String(p.year) === String(yearValue));
+        if (idx === -1) return;
+        const settings = yearPaginationSettings[key] || { perPage: 21, currentPage: 1 };
+        if (settings.perPage === Infinity) {
+          // "Show All" is active — everything's already on screen, just scroll to it.
+          const grid = document.getElementById(`photos-${key}`);
+          const card = grid ? grid.children[idx] : null;
+          if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+        const page = Math.floor(idx / settings.perPage) + 1;
+        goToPage(key, page);
+      }
+
+      // Same idea as jumpToYear, one level down — jumps to the page where a given
+      // month starts within a single plain year box (not gallery-result/collection
+      // boxes, which span multiple years and have no single unambiguous "month").
+      function jumpToMonth(year, monthValue) {
+        if (!monthValue) return;
+        const yearPhotos = currentRenderData.filter((p) => p.year === year);
+        const idx = yearPhotos.findIndex((p) => p.month === monthValue);
+        if (idx === -1) return;
+        const settings = yearPaginationSettings[year] || { perPage: 21, currentPage: 1 };
+        if (settings.perPage === Infinity) {
+          const grid = document.getElementById(`photos-${year}`);
+          const card = grid ? grid.children[idx] : null;
+          if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+        const page = Math.floor(idx / settings.perPage) + 1;
+        goToPage(year, page);
       }
 
       function jumpToPage(year, totalPages) {
@@ -4840,6 +4895,16 @@
       function buildGalleryResultCardHTML(galleryId, photos) {
         const g = GALLERY_META[galleryId];
         const key = 'g_' + galleryId;
+        // Distinct years present, newest first — powers the "Jump to year" dropdown
+        // below so a large result set (hundreds of items, dozens of pages) doesn't
+        // require clicking through page numbers one at a time to reach an older year.
+        const distinctYears = [...new Set(photos.map((p) => p.year))].filter(Boolean).sort((a, b) => b - a);
+        const yearJumpHTML = distinctYears.length > 1
+          ? `<select id="year-jump-${key}" onchange="jumpToYear('${key}', this.value)">
+                                    <option value="">Jump to year ▾</option>
+                                    ${distinctYears.map((y) => `<option value="${y}">${y}</option>`).join("")}
+                                </select>`
+          : '';
         const previewPhotos = photos.slice(0, 4);
         const previewHTML = `
                     <div class="year-preview">
@@ -4867,12 +4932,12 @@
                         </div>
                         <div class="timeline-year-content">
                             <div class="year-controls">
-                                <label for="per-page-${key}">Photos per page:</label>
+                                ${yearJumpHTML}
                                 <select id="per-page-${key}" onchange="changePhotosPerPage('${key}', this.value)">
-                                    <option value="21">21</option>
-                                    <option value="42">42</option>
-                                    <option value="84">84</option>
-                                    <option value="all">All</option>
+                                    <option value="21">21 / page</option>
+                                    <option value="42">42 / page</option>
+                                    <option value="84">84 / page</option>
+                                    <option value="all">Show All</option>
                                 </select>
                             </div>
                             <div class="year-photos-grid" id="photos-${key}"></div>
@@ -4950,6 +5015,14 @@
         document
           .getElementById(section + "-section")
           .classList.remove("hidden");
+        // A section can go from display:none to visible while search-result cards
+        // are already in the DOM (e.g. the background-backfill silent re-run landed
+        // while the user had navigated to a different section) — any <img> observed
+        // while its ancestor was hidden gets a zero-size bounding box and can be
+        // missed by both the IO and the per-group rAF force-load. Same fix as the
+        // browser-tab-visibility case (see Lazy Loading — Background-Tab Stall),
+        // just triggered by this in-page visibility change too.
+        requestAnimationFrame(forceLoadVisibleImages);
         if (section === "playlists") {
           curatedPlaylistsReady.then(renderCuratedCollectionBoxes);
         }
