@@ -3958,8 +3958,19 @@
 
           // Remove the original extension (e.g. .jpeg, .png)
           const lastDotIndex = thumbUrl.lastIndexOf(".");
+          const origExt = lastDotIndex !== -1 ? thumbUrl.substring(lastDotIndex).toLowerCase() : "";
           if (lastDotIndex !== -1) {
             thumbUrl = thumbUrl.substring(0, lastDotIndex);
+          }
+
+          // Video thumbnails keep the source extension in the key
+          // (thumbs/{base}.mov_m.jpg) so a video and an image sharing the same
+          // date+index (e.g. a Live Photo saved as both a still .jpg and its
+          // .mov motion component) don't collide on the same thumbnail —
+          // must match autosync's thumb_key() (app.py). See autosync CLAUDE.md
+          // "Video/Image Thumbnail-Key Collision" (Aug 2026).
+          if (origExt === ".mp4" || origExt === ".mov") {
+            return `${thumbUrl}${origExt}_${size}.jpg`;
           }
 
           // Force append _m.jpg (matches your Python script's output)
