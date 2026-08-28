@@ -4664,6 +4664,30 @@
       });
       window.addEventListener('focus', forceLoadVisibleImages);
 
+      // Scroll safety net (fixed Aug 2026): the per-group rAF check in
+      // setupLazyLoadingForYear() reads getBoundingClientRect() once, at the
+      // instant a group is rendered -- confirmed directly that this can be
+      // wrong (an image measured as already-scrolled-past when the render
+      // lands mid-scroll, or while the results container's height is still
+      // settling from a just-replaced DOM tree), permanently skipping that
+      // image since nothing ever re-checked it afterward. IntersectionObserver
+      // should normally catch a genuinely-scrolled-into-view image regardless,
+      // but empirically some images were still found stuck with no src no
+      // matter how far the user scrolled -- this had no scroll-driven retry
+      // of any kind (the file's other two 'scroll' listeners are unrelated:
+      // back-to-top visibility and the theme switcher's shrink-on-scroll).
+      // rAF-throttled (one pending check at a time) since scroll fires far
+      // more often than every frame.
+      let _scrollLoadPending = false;
+      window.addEventListener('scroll', () => {
+        if (_scrollLoadPending) return;
+        _scrollLoadPending = true;
+        requestAnimationFrame(() => {
+          forceLoadVisibleImages();
+          _scrollLoadPending = false;
+        });
+      }, { passive: true });
+
       function unloadYearImages(year) {
         document.querySelectorAll(`#photos-${year} img`).forEach((img) => {
           img.removeAttribute("src");
@@ -4833,6 +4857,12 @@
       }
 
       function matchesSearchText(item, query) {
+        // Every branch below lowercases the field it's checking, but not the
+        // query itself — so a capital letter in the search (e.g. "Z世代")
+        // never matched lowercase content even when it was clearly present
+        // in the data ("z世代青年说"). Normalize once here instead of at
+        // every call site.
+        query = query.toLowerCase();
         return (
           item.year.includes(query) ||
           item.month.toLowerCase().includes(query) ||
