@@ -3718,7 +3718,16 @@
         if (photo.platform_links && typeof photo.platform_links === 'object') {
             Object.keys(photo.platform_links).forEach(_addBadge);
         }
-        if (!_badgeHtml.length) _addBadge(rawSource);
+        // Fall back to the citation link's implied platform (rawSource, default
+        // 'weibo') only when the entry's own `platform` array was empty --
+        // NOT when the merged badge list happens to be non-empty. The old
+        // `if (!_badgeHtml.length)` guard skipped this fallback whenever
+        // platform_links had already contributed ANY badge (e.g. a douyin
+        // cross-post link), silently hiding the weibo badge for an entry
+        // whose primary citation (`link`/`weibo` field) genuinely is a Weibo
+        // URL. _addBadge()'s own _seenBadges check already prevents a
+        // duplicate if rawSource turns out to already be present.
+        if (_stypes.length === 0) _addBadge(rawSource);
         sourceBadge.style.cssText = 'display:flex;align-items:center;gap:5px';
         sourceBadge.innerHTML = _badgeHtml.join('');
 
@@ -4856,25 +4865,29 @@
         return true;
       }
 
-      function matchesSearchText(item, query) {
-        // Every branch below lowercases the field it's checking, but not the
-        // query itself — so a capital letter in the search (e.g. "Z世代")
-        // never matched lowercase content even when it was clearly present
-        // in the data ("z世代青年说"). Normalize once here instead of at
-        // every call site.
-        query = query.toLowerCase();
+      // Multiple space-separated keywords are AND'd together (added Aug
+      // 2026) — "花絮 GUCCI" now matches an item where "花絮" appears
+      // anywhere (e.g. postText) AND "GUCCI" appears anywhere else (e.g.
+      // tags), rather than requiring that exact phrase-with-space as one
+      // literal substring, which almost never occurs since the two keywords
+      // are typically in different fields.
+      function _matchesSingleToken(item, token) {
         return (
-          item.year.includes(query) ||
-          item.month.toLowerCase().includes(query) ||
-          item.date.includes(query) ||
-          (Array.isArray(item.tags) && item.tags.some((t) => String(t).toLowerCase().includes(query))) ||
-          (Array.isArray(item.englishTags) && item.englishTags.some(t => String(t).toLowerCase().includes(query))) ||
-          (Array.isArray(item.source) && item.source.some(s => s.toLowerCase().includes(query))) ||
-          (SOURCE_SECTIONS._section_labels[getPhotoSection(item)] || '').toLowerCase().includes(query) ||
-          (item.description && item.description.toLowerCase().includes(query)) ||
-          (item.postText && item.postText.toLowerCase().includes(query)) ||
-          (GALLERY_META[item._gallery]?.name.toLowerCase().includes(query))
+          item.year.includes(token) ||
+          item.month.toLowerCase().includes(token) ||
+          item.date.includes(token) ||
+          (Array.isArray(item.tags) && item.tags.some((t) => String(t).toLowerCase().includes(token))) ||
+          (Array.isArray(item.englishTags) && item.englishTags.some(t => String(t).toLowerCase().includes(token))) ||
+          (Array.isArray(item.source) && item.source.some(s => s.toLowerCase().includes(token))) ||
+          (SOURCE_SECTIONS._section_labels[getPhotoSection(item)] || '').toLowerCase().includes(token) ||
+          (item.description && item.description.toLowerCase().includes(token)) ||
+          (item.postText && item.postText.toLowerCase().includes(token)) ||
+          (GALLERY_META[item._gallery]?.name.toLowerCase().includes(token))
         );
+      }
+      function matchesSearchText(item, query) {
+        const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+        return tokens.every((token) => _matchesSingleToken(item, token));
       }
 
       // Builds a URL back to a source gallery carrying the same keyword + filters
