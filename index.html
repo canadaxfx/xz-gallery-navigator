@@ -2866,7 +2866,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20260824-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20260828-2'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
@@ -4542,6 +4542,32 @@
           );
         }
         setupLazyLoadingForYear(year);
+        _scheduleDeferredLoadCheck();
+      }
+
+      // Second-chance safety net (fixed Aug 2026): the scroll/focus/visibility
+      // listeners added earlier only fire on a fresh USER action -- they don't
+      // help when a render happens programmatically with nothing for the user
+      // to react to. Confirmed as a real, separate gap: loadRemainingInBackground()
+      // silently re-runs the active search/filter once the full dataset finishes
+      // loading (performSearch/applyDateFilter), landing a fresh render at an
+      // unpredictable moment. If the user isn't actively scrolling right then
+      // (they already found what looked like a finished page and stopped), the
+      // one-shot rAF check in setupLazyLoadingForYear() has no follow-up unless
+      // they happen to scroll or switch tabs again afterward -- which they have
+      // no reason to, since nothing visibly changed to prompt it. Every render
+      // path funnels through renderYearPage(), so a short delayed recheck here
+      // covers all of them uniformly (initial load, filter/search, the silent
+      // background re-run, curated collections) with one change. Coalesced with
+      // a pending flag since multiple groups render in the same batch.
+      let _deferredLoadCheckPending = false;
+      function _scheduleDeferredLoadCheck() {
+        if (_deferredLoadCheckPending) return;
+        _deferredLoadCheckPending = true;
+        setTimeout(() => {
+          forceLoadVisibleImages();
+          _deferredLoadCheckPending = false;
+        }, 400);
       }
 
       function createPaginationButtons(year, currentPage, totalPages) {
@@ -4685,16 +4711,24 @@
       // matter how far the user scrolled -- this had no scroll-driven retry
       // of any kind (the file's other two 'scroll' listeners are unrelated:
       // back-to-top visibility and the theme switcher's shrink-on-scroll).
-      // rAF-throttled (one pending check at a time) since scroll fires far
-      // more often than every frame.
+      // Throttled via setTimeout, NOT requestAnimationFrame (fixed Aug 2026,
+      // caught via direct testing): rAF is exactly the primitive that gets
+      // throttled/paused by the browser in a non-compositing context (a
+      // background tab, or -- confirmed directly -- an automation/headless
+      // browser pane that isn't actively displayed) -- the same root cause
+      // as the *original* bug this safety net exists to catch. A scroll
+      // safety net built on rAF can silently fail to fire in exactly the
+      // situations it's meant to cover. setTimeout doesn't share that
+      // failure mode (browsers only ever clamp its minimum delay in a
+      // deeply backgrounded tab, they don't suspend it outright).
       let _scrollLoadPending = false;
       window.addEventListener('scroll', () => {
         if (_scrollLoadPending) return;
         _scrollLoadPending = true;
-        requestAnimationFrame(() => {
+        setTimeout(() => {
           forceLoadVisibleImages();
           _scrollLoadPending = false;
-        });
+        }, 100);
       }, { passive: true });
 
       function unloadYearImages(year) {
