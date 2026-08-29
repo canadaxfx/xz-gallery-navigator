@@ -42,11 +42,13 @@
 .pl-play-btn{flex:1;min-width:0;padding:5px 4px;background:var(--grad-gold);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:10px;font-weight:600;line-height:1.35;text-align:center;white-space:normal}
 .pl-clear-btn{padding:6px 10px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;font-size:10px;white-space:nowrap}
 .pl-card-add{position:absolute;bottom:26px;right:4px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:4px;padding:2px 6px;font-size:11px;cursor:pointer;opacity:1;z-index:3;white-space:nowrap}
-.pl-card-add.pl-added{background:rgba(var(--gold-dr), 0.9)}
+.pl-card-add.pl-added{background:rgba(37,99,235,.8)}
 .pl-add-all-btn{display:none;padding:5px 14px;background:transparent;color:var(--gold);border:1px solid rgba(var(--gold-dr), 0.45);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s,border-color .2s}.pl-add-all-btn:hover{background:rgba(var(--gold-dr), 0.08);border-color:rgba(var(--gold-dr), 0.75)}
+.pl-add-all-btn.pl-added{background:rgba(37,99,235,.85);color:#fff;border-color:rgba(37,99,235,.9)}
+.pl-add-all-btn.pl-added:hover{background:rgba(37,99,235,.7)}
 .pl-modal-add-btn{padding:3px 10px;background:rgba(var(--gold-dr), 0.12);color:var(--gold);border:1px solid #e8d49a;border-radius:12px;font-size:12px;cursor:pointer;display:none;white-space:nowrap}
 .pl-modal-add-btn:hover{background:rgba(var(--gold-dr), 0.2)}
-.pl-modal-add-btn.pl-in-list{background:rgba(var(--gold-dr), 0.12);color:var(--gold);border-color:#d4b84a;box-shadow:0 0 0 1.5px var(--gold)}
+.pl-modal-add-btn.pl-in-list{background:rgba(37,99,235,.12);color:#2563eb;border-color:#93c5fd;box-shadow:0 0 0 1.5px #2563eb}
 .pl-counter-badge{background:#1f2937;color:#fff;padding:2px 9px;border-radius:10px;font-size:11px;margin-left:5px;display:none}
 #plToast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:8px 18px;border-radius:8px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .3s}
 @media(max-width:600px){.playlist-panel{width:calc(100vw - 90px)}}
@@ -112,17 +114,17 @@
         --bg-float:    #380a14;
 
         /* Gold — solid */
-        --gold:        #A07800;
+        --gold:        #C97B3D;
 
         /* Gold / red / shadow as RGB for rgba() */
-        --gold-rgb:    220, 170, 20;
-        --gold-dr:     160, 120, 0;
+        --gold-rgb:    201, 123, 61;
+        --gold-dr:     181, 101, 46;
         --red-rgb:     196, 18, 48;
         --shad-rgb:    48, 8, 16;
 
         /* Gradients */
-        --grad-gold:   linear-gradient(135deg, #E8C040 0%, #B89010 50%, #DDB820 100%);
-        --grad-gold-h: linear-gradient(135deg, #D4A820 0%, #8A6800 50%, #C0980C 100%);
+        --grad-gold:   linear-gradient(135deg, #E8A672 0%, #B5652E 50%, #DFA070 100%);
+        --grad-gold-h: linear-gradient(135deg, #CE9160 0%, #8A4E28 50%, #B5732E 100%);
         --grad-red:    linear-gradient(135deg, #3a0910 0%, #500f1c 100%);
         --grad-red-h:  linear-gradient(135deg, #500f1c, #420d18);
         --grad-year:   linear-gradient(45deg, #300810, #420d18);
@@ -697,6 +699,8 @@
         position: relative;
       }
       .yr-pl-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.9);font-size:10px;cursor:pointer;padding:3px 9px;font-style:italic;display:inline-block;border-radius:10px;margin-top:6px;transition:background .15s,border-color .15s}
+      .yr-pl-btn.pl-added{background:rgba(37,99,235,.55);border-color:rgba(37,99,235,.8);color:#fff}
+      .yr-pl-btn.pl-added:hover{background:rgba(37,99,235,.7)}
       .yr-pl-btn:hover{background:rgba(255,255,255,0.25);border-color:rgba(255,255,255,0.55);color:#fff}
       .year-preview-zone {
         background: var(--grad-year);
@@ -704,9 +708,6 @@
         padding: 10px 20px 12px;
         border-top: 1px solid rgba(255,255,255,0.06);
         opacity: 0.82;
-      }
-      .timeline-year.expanded .year-preview-zone {
-        display: none;
       }
       .timeline-year.expanded .timeline-year-header {
         background: var(--grad-year);
@@ -764,9 +765,6 @@
         align-items: center;
         margin-top: 8px;
         opacity: 0.9;
-      }
-      .timeline-year.expanded .year-preview {
-        display: none;
       }
       .preview-thumb {
         width: 32px;
@@ -1534,7 +1532,7 @@
       .badge-youtube { position: absolute; bottom: 0px; left: 10px; background: rgba(204, 0, 0, 0.85); color: #fff; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; z-index: 11; letter-spacing: 0.05em; text-decoration: none; cursor: pointer; }
       #badgesRow .badge-quality, #badgesRow .badge-youtube { position: static; bottom: auto; left: auto; z-index: auto; }
       .badge-size { background: rgba(0,0,0,0.55); color: #fff; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; pointer-events: none; }
-      .timeline-photo.pl-in-playlist { box-shadow: 0 0 0 2.5px var(--gold), 0 2px 8px rgba(0,0,0,0.1); }
+      .timeline-photo.pl-in-playlist { box-shadow: 0 0 0 2.5px #2563eb, 0 2px 8px rgba(0,0,0,0.1); }
       .source-hover-tip {
         position: absolute; top: 50%; left: 50%;
         transform: translate(-50%, -50%);
@@ -3005,19 +3003,71 @@
           });
       }
 
+      // Whether every video in a bounded list is already queued — every bulk add/remove
+      // button below toggles based on this, mirroring the individual "+"/"✓" card toggle.
+      // Dedup by url, matching plCardAdd's own convention (see its comment) — the same
+      // physical file can carry a different regenerated id per reload.
+      function plAllVideosIn(videos) {
+          return videos.length > 0 && videos.every(p => playlist.some(x => x.url === p.url));
+      }
+
+      // Shared label text for a "bulk add/remove N videos" button — used both at initial
+      // render (so a page reload with a bounded set already fully queued shows "Remove"
+      // immediately) and in plSyncBulkButtons() (so later playlist changes keep it correct).
+      function plBulkBtnLabel(videos, suffix) {
+          const n = videos.length;
+          const allIn = plAllVideosIn(videos);
+          const word = n > 1 ? 's' : '';
+          return {
+              allIn,
+              text: allIn
+                  ? `✓ Remove ${n} video${word} from playlist${suffix || ''}`
+                  : `＋ Add ${n} video${word} to playlist${suffix || ''}`
+          };
+      }
+
       function addAllFilteredVideos() {
-          let added = 0;
-          filteredVideosCache.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
-          plSave(); plRender();
-          plToast(added ? `已加入 ${added} 个视频` : '视频已全在播放列表中');
+          if (plAllVideosIn(filteredVideosCache)) {
+              const removeUrls = new Set(filteredVideosCache.map(p => p.url));
+              playlist = playlist.filter(x => !removeUrls.has(x.url));
+              plSave(); plRender();
+              plToast(`已从播放列表移除 ${filteredVideosCache.length} 个视频`);
+          } else {
+              let added = 0;
+              filteredVideosCache.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
+              plSave(); plRender();
+              plToast(added ? `已加入 ${added} 个视频` : '视频已全在播放列表中');
+          }
       }
 
       function addYearToPlaylist(year) {
           const videos = filteredVideosCache.filter(p => String(p.year) === String(year));
-          let added = 0;
-          videos.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
-          plSave(); plRender();
-          plToast(added ? `已加入 ${year} 年 ${added} 个视频` : `${year} 年视频已全在播放列表中`);
+          if (plAllVideosIn(videos)) {
+              const removeUrls = new Set(videos.map(p => p.url));
+              playlist = playlist.filter(x => !removeUrls.has(x.url));
+              plSave(); plRender();
+              plToast(`已从播放列表移除 ${videos.length} 个视频`);
+          } else {
+              let added = 0;
+              videos.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
+              plSave(); plRender();
+              plToast(added ? `已加入 ${year} 年 ${added} 个视频` : `${year} 年视频已全在播放列表中`);
+          }
+      }
+
+      // Re-syncs every bulk add/remove button's label + pl-added state against the current
+      // playlist — called from plRender() so ANY playlist mutation (individual card, another
+      // bulk button, the playlist panel's own remove/clear) keeps all of them correct, not
+      // just the one that was actually clicked.
+      function plSyncBulkButtons() {
+          plUpdateAddAllBtn();
+          document.querySelectorAll('.yr-pl-btn[data-year]').forEach(btn => {
+              const year = btn.getAttribute('data-year');
+              const videos = filteredVideosCache.filter(p => String(p.year) === String(year));
+              const l = plBulkBtnLabel(videos, plAllVideosIn(videos) ? ' · 移出播放列表' : ' · 加入播放列表');
+              btn.classList.toggle('pl-added', l.allIn);
+              btn.textContent = l.text;
+          });
       }
 
       function plRemove(url, e) {
@@ -3047,6 +3097,7 @@
           if (badge) { badge.textContent = playlist.length; badge.style.display = playlist.length ? 'block' : 'none'; }
           const vcBadge = document.getElementById('vcPlBadge');
           if (vcBadge) { vcBadge.textContent = playlist.length; vcBadge.style.display = playlist.length ? 'block' : 'none'; }
+          plSyncBulkButtons();
           if (!playlist.length) { panel.style.display = 'none'; return; }
           const activeId = playlistMode ? (currentPhotoGroup[currentPhotoIndex] || {}).id : null;
           list.innerHTML = playlist.map((p, i) => `
@@ -3215,11 +3266,14 @@
 
       function plUpdateAddAllBtn() {
           const btn = document.getElementById('plAddAllBtn');
-          const countEl = document.getElementById('plAddAllCount');
-          if (!btn || !countEl) return;
+          if (!btn) return;
           if (filteredVideosCache.length > 0) {
-              countEl.textContent = filteredVideosCache.length;
               btn.style.display = 'inline-block';
+              const allIn = plAllVideosIn(filteredVideosCache);
+              btn.classList.toggle('pl-added', allIn);
+              btn.innerHTML = allIn
+                  ? `✓ Remove <span id="plAddAllCount">${filteredVideosCache.length}</span> videos from Playlist`
+                  : `▶ Add <span id="plAddAllCount">${filteredVideosCache.length}</span> videos to Playlist`;
           } else {
               btn.style.display = 'none';
           }
@@ -4343,7 +4397,7 @@
                                 </div>
                                 <div class="year-preview-zone">
                                     ${previewHTML}
-                                    ${yearVideos.length ? `<button class="yr-pl-btn" onclick="event.stopPropagation();addYearToPlaylist('${year}')">＋ Add ${yearVideos.length} video${yearVideos.length > 1 ? 's' : ''} to playlist · 加入播放列表</button>` : ''}
+                                    ${yearVideos.length ? `<button class="yr-pl-btn${plAllVideosIn(yearVideos) ? ' pl-added' : ''}" data-year="${year}" onclick="event.stopPropagation();addYearToPlaylist('${year}')">${plBulkBtnLabel(yearVideos, plAllVideosIn(yearVideos) ? ' · 移出播放列表' : ' · 加入播放列表').text}</button>` : ''}
                                     <div class="year-hint">Click thumbnails for high-res · 点击缩略图打开高清</div>
                                 </div>
                             </div>
