@@ -3233,9 +3233,9 @@
 
           // Reset
           seek.value = 0; seek._seeking = false;
-          // Clear the previous track's scale — onloadedmetadata will set the real value.
-          // Until then the slider is frozen (max===min) so a stale scale can't be dragged.
-          seek.max = (isFinite(v.duration) && v.duration > 0) ? v.duration : 0;
+          // seek.max is left untouched here: onloadedmetadata sets the real value, and
+          // seek.onchange below refuses to seek until v.duration is known, so a briefly
+          // stale scale can't cause a bad jump — and the bar stays grabbable meanwhile.
           vcSeekPct(seek);
           cur.textContent = '0:00'; dur.textContent = '0:00';
           playBtn.textContent = v.paused ? '▶' : '⏸';
@@ -3259,9 +3259,15 @@
           seek.oninput  = () => { seek._seeking = true; vcSeekPct(seek); cur.textContent = vcFmt(parseFloat(seek.value)); };
           seek.onchange = () => {
               const d = v.duration;
-              // Only seek once the real duration is known, and never to the exact end
-              // (seeking to duration fires `ended`, which auto-advances the playlist).
-              if (isFinite(d) && d > 0) v.currentTime = Math.max(0, Math.min(parseFloat(seek.value), d - 0.25));
+              // Only seek once the real duration is actually known (before that, seek.max is
+              // a stale/default scale and seek.value is meaningless).
+              if (isFinite(d) && d > 0) {
+                  v.currentTime = Math.max(0, Math.min(parseFloat(seek.value), d - 0.05));
+                  // A seek just moved playback — if it lands near the end, the tail plays out
+                  // and fires `ended`. Mark a short window so that `ended` is treated as
+                  // "user scrubbed here", not "video finished", and does NOT auto-advance.
+                  v._seekGuardUntil = Date.now() + 1200;
+              }
               seek._seeking = false;
           };
       }
@@ -3953,7 +3959,10 @@
           videoElement.classList.remove("hidden");
           videoElement.src = photo.url;
           videoElement.loop = !playlistMode;
-          videoElement.onended = playlistMode ? () => navigatePhoto(1) : null;
+          videoElement.onended = playlistMode ? () => {
+            if (Date.now() < (videoElement._seekGuardUntil || 0)) return;   // scrubbed to the end — stay put
+            navigatePhoto(1);
+          } : null;
           vcSetup(videoElement);
           videoElement.play().catch(e => console.log("Video autoplay prevented"));
         } else if (_isAudio) {
