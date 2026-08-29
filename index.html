@@ -3163,7 +3163,7 @@
           plPlayItem(0, shuffle ? shuffleArray(playlist) : null);
       }
 
-      var _plDir = 1;  // first press flips to -1 (reverse 倒序) and the label shows it; label always mirrors playback
+      var _plDir = -1;  // first press flips to 1: label stays 顺序播放, plays the stored order (newest→oldest). Later presses toggle 倒序/顺序.
       function plPlayDir() {
           if (!playlist.length) return;
           _plDir = -_plDir;
