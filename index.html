@@ -1282,7 +1282,7 @@
       .vc-fs-wrap { display: flex; flex-direction: column; min-height: 0; }
       .vc-fs-wrap:fullscreen,
       .vc-fs-wrap:-webkit-full-screen {
-        width: 100vw; height: 100vh; background: #000;
+        width: 100vw; height: 100vh; background: #000; position: relative;
       }
       .vc-fs-wrap:fullscreen .modal-photo-container,
       .vc-fs-wrap:-webkit-full-screen .modal-photo-container {
@@ -1292,10 +1292,32 @@
       .vc-fs-wrap:-webkit-full-screen .thumbnail-strip {
         display: none;
       }
+      /* In fullscreen the control bar floats as a centered pill over the bottom of the video
+         (absolute, so the video itself always fills the whole screen) instead of a stretched
+         100vw strip that flung the buttons to the edges and clipped the trailing ones. */
       .vc-fs-wrap:fullscreen .pl-fs-controls,
       .vc-fs-wrap:-webkit-full-screen .pl-fs-controls {
-        border-radius: 0;
+        position: absolute;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        width: min(720px, calc(100% - 32px));
+        box-sizing: border-box;
+        border-top: none;
+        border-radius: 12px;
+        box-shadow: 0 6px 22px rgba(0,0,0,.45);
+        transition: opacity .2s ease, transform .2s ease;
+        z-index: 5;
       }
+      /* ⌄ hide-bar toggle → true unobstructed fullscreen; tap the video to bring it back */
+      .vc-fs-wrap.bar-hidden .pl-fs-controls {
+        opacity: 0;
+        transform: translateX(-50%) translateY(140%);
+        pointer-events: none;
+      }
+      #vcHideBarBtn { display: none; }
+      .vc-fs-wrap:fullscreen #vcHideBarBtn,
+      .vc-fs-wrap:-webkit-full-screen #vcHideBarBtn { display: flex; }
 
       .modal-photo {
         max-width: 100%;
@@ -2577,8 +2599,9 @@
             </div>
             <button class="vc-btn" id="vcMuteBtn" onclick="vcToggleMute()" title="Mute"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
             <button class="vc-btn" id="vcFsBtn" onclick="vcFullscreen()" title="Fullscreen"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+            <button class="vc-btn" id="vcHideBarBtn" onclick="vcToggleBar()" title="隐藏控制栏 / Hide bar"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
             <button class="pl-fs-nav-btn" id="plFsNext" onclick="navigatePhoto(1)" title="Next"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
-            <button id="vcPlBtn" onclick="plTogglePanel()" title="Playlist 播放列表">🎬<span id="vcPlBadge"></span></button>
+            <button id="vcPlBtn" onclick="vcOpenPlaylist()" title="Playlist 播放列表">🎬<span id="vcPlBadge"></span></button>
         </div>
         </div>
 
@@ -3336,14 +3359,47 @@
       const _VC_FS_ICON_ENTER = '<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
       const _VC_FS_ICON_EXIT  = '<svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>';
       function vcSyncFsBtn() {
+          const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+          const wrap = document.getElementById('vcFsWrap');
+          if (wrap && !isFs) wrap.classList.remove('bar-hidden');   // don't carry hidden-bar state out of fullscreen
           const btn = document.getElementById('vcFsBtn');
           if (!btn) return;
-          const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
           btn.innerHTML = isFs ? _VC_FS_ICON_EXIT : _VC_FS_ICON_ENTER;
           btn.title = isFs ? 'Exit fullscreen' : 'Fullscreen';
       }
       document.addEventListener('fullscreenchange', vcSyncFsBtn);
       document.addEventListener('webkitfullscreenchange', vcSyncFsBtn);
+
+      // ⌄ — collapse the control bar for a truly unobstructed fullscreen view.
+      function vcToggleBar() {
+          const w = document.getElementById('vcFsWrap');
+          if (w) w.classList.toggle('bar-hidden');
+      }
+      // Tap the video (in fullscreen) to hide/show the bar.
+      (function () {
+          const mc = document.querySelector('.modal-photo-container');
+          if (!mc) return;
+          mc.addEventListener('click', (e) => {
+              if (!(document.fullscreenElement || document.webkitFullscreenElement)) return;
+              if (e.target.closest('.nav-arrow, .pl-fs-controls, #postTextPanel')) return;
+              const w = document.getElementById('vcFsWrap');
+              if (w) w.classList.toggle('bar-hidden');
+          });
+      })();
+      // 🎬 in fullscreen: the playlist panel lives outside the fullscreened element and can't
+      // paint on top of it — so leave fullscreen first, then open the panel.
+      function vcOpenPlaylist() {
+          const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+          if (fsEl) {
+              (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
+              setTimeout(() => {
+                  const p = document.getElementById('playlistPanel');
+                  if (p) { p.style.display = 'flex'; try { plPositionPanel(); } catch (e) {} }
+              }, 90);
+          } else {
+              plTogglePanel();
+          }
+      }
 
       function plToast(msg) {
           const t = document.getElementById('plToast');
