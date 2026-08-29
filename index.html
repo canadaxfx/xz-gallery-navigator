@@ -4268,15 +4268,22 @@
       }
 
       /* ---------- Touch/Swipe Support ---------- */
+      // Touches on the video control bar (scrubbing the seek slider, tapping play/mute/etc.)
+      // must NOT bubble up as a photo swipe — a horizontal drag on the seek bar was being
+      // read as "swipe to next", jumping to the next playlist item.
+      const _fromVideoControls = (e) => e.target.closest(".pl-fs-controls, input[type=range]");
+
       document
         .getElementById("photoModal")
         .addEventListener("touchstart", (e) => {
+          if (_fromVideoControls(e)) { touchStartX = null; return; }
           touchStartX = e.changedTouches[0].screenX;
         });
 
       document
         .getElementById("photoModal")
         .addEventListener("touchend", (e) => {
+          if (_fromVideoControls(e) || touchStartX === null) return;
           touchEndX = e.changedTouches[0].screenX;
           handleSwipe();
         });
