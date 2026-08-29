@@ -2928,6 +2928,21 @@
         },
       };
 
+      // Local-JSON override for test_galleries.bat: that script always serves this file
+      // on the fixed port 7008, alongside Studio/Misc/Archive's own local python
+      // http.server instances on 7003/7004/7005 — so when we detect we're being served
+      // from 7008, fetch their JSON from those local ports instead of the live domains
+      // above. Keyed on this specific port (not a general localhost/127.0.0.1 check)
+      // because this file is also served locally for day-to-day testing via a separate
+      // tool on a different port (.claude/launch.json, port 8899), which expects the
+      // normal live-domain behavior against real data — port-keying keeps that setup
+      // untouched while letting test_galleries.bat work with zero changes to itself.
+      if (location.port === '7008') {
+        GALLERY_META.studio.base  = 'http://localhost:7003/';
+        GALLERY_META.misc.base    = 'http://localhost:7004/';
+        GALLERY_META.archive.base = 'http://localhost:7005/';
+      }
+
       // Normalizes one raw JSON entry from any of the 3 galleries into a
       // common shape. Does not touch the source galleries' own data/files —
       // all three keep their existing schemas unchanged.
@@ -3746,12 +3761,15 @@
       function setPlatformBtnBehavior(btn, mainLink, extraLinks, primarySource) {
         const existingPop = document.getElementById('platformPopover');
         if (existingPop) existingPop.style.display = 'none';
-        const lmap = {weibo:'Weibo 微博',douyin:'Douyin 抖音',youtube:'YouTube',bilibili:'Bilibili',ins:'Instagram',xiaohongshu:'RedNote 小红书',xhs:'RedNote 小红书',rednote:'RedNote 小红书',qq:'QQ 腾讯',wx:'WeChat 微信',wechat:'WeChat 微信',mgtv:'MGTV 芒果TV'};
+        const lmap = {weibo:'Weibo 微博',oasis:'Oasis 绿洲',douyin:'Douyin 抖音',youtube:'YouTube',bilibili:'Bilibili',ins:'Instagram',instagram:'Instagram',xiaohongshu:'RedNote 小红书',xhs:'RedNote 小红书',rednote:'RedNote 小红书',twitter:'Twitter',x:'X',facebook:'Facebook',qq:'QQ 腾讯',wx:'WeChat 微信',wechat:'WeChat 微信',mgtv:'MGTV 芒果TV'};
         const links = [];
         const w = mainLink ? String(mainLink).trim() : '';
-        if (w) links.push({label: lmap[primarySource] || 'Weibo 微博', url: /^https?/i.test(w) ? w : 'https://' + w});
+        // Fall back to the raw platform string itself (never a hardcoded 'Weibo') --
+        // primarySource may be any free-typed platform not in lmap (see
+        // XZ Gallery Navigator CLAUDE.md "Platform Link Label Defaulted to Weibo").
+        if (w) links.push({label: lmap[primarySource] || primarySource || 'Weibo 微博', url: /^https?/i.test(w) ? w : 'https://' + w});
         if (extraLinks && typeof extraLinks === 'object') {
-          Object.entries(extraLinks).forEach(([k, v]) => { if (v) links.push({label: lmap[k] || k, url: String(v)}); });
+          Object.entries(extraLinks).forEach(([k, v]) => { if (v) links.push({label: lmap[String(k).toLowerCase()] || k, url: String(v)}); });
         }
         if (!links.length) { btn.style.display = 'none'; return; }
         btn.style.display = 'inline-block';
