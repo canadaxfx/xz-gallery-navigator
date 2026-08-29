@@ -486,6 +486,15 @@
         padding: 3px 10px;
         transition: background 0.2s ease, border-color 0.2s ease;
       }
+      .collection-secondary-btn.pl-added {
+        background: rgba(37,99,235,.12);
+        color: #2563eb;
+        border-color: rgba(37,99,235,.6);
+      }
+      .collection-secondary-btn.pl-added:hover {
+        background: rgba(37,99,235,.2);
+        border-color: #2563eb;
+      }
       .collection-secondary-btn:hover {
         background: rgba(var(--gold-dr), 0.08);
         border-color: rgba(var(--gold-dr), 0.75);
@@ -765,6 +774,12 @@
         align-items: center;
         margin-top: 8px;
         opacity: 0.9;
+      }
+      /* Only the tiny preview thumbnails hide on expand — they're redundant once the full
+         grid is showing below. The bulk add/remove-all button (a sibling in .year-preview-
+         zone) stays visible in both states. */
+      .timeline-year.expanded .year-preview {
+        display: none;
       }
       .preview-thumb {
         width: 32px;
@@ -3068,6 +3083,13 @@
               btn.classList.toggle('pl-added', l.allIn);
               btn.textContent = l.text;
           });
+          document.querySelectorAll('.collection-secondary-btn[data-collection-key]').forEach(btn => {
+              const key = btn.getAttribute('data-collection-key');
+              const videos = curatedCollectionItems(key).filter(p => isVideoEntry(p));
+              const l = plBulkBtnLabel(videos, plAllVideosIn(videos) ? ' · 从我的播放列表移除' : ' · 加入我的播放列表');
+              btn.classList.toggle('pl-added', l.allIn);
+              btn.textContent = l.text;
+          });
       }
 
       function plRemove(url, e) {
@@ -3098,6 +3120,7 @@
           const vcBadge = document.getElementById('vcPlBadge');
           if (vcBadge) { vcBadge.textContent = playlist.length; vcBadge.style.display = playlist.length ? 'block' : 'none'; }
           plSyncBulkButtons();
+          plSyncAllCards();
           if (!playlist.length) { panel.style.display = 'none'; return; }
           const activeId = playlistMode ? (currentPhotoGroup[currentPhotoIndex] || {}).id : null;
           list.innerHTML = playlist.map((p, i) => `
@@ -3385,7 +3408,7 @@
                                 <button class="btn collection-action-btn" onclick="event.stopPropagation();playCuratedCollection('${key}', true)">🔀 随机</button>
                             </div>
                             <div style="text-align:center;margin-bottom:4px;">
-                                <button class="btn collection-action-btn collection-secondary-btn" onclick="event.stopPropagation();addCuratedToPlaylist('${key}')">＋ Add to My Playlist · 加入我的播放列表</button>
+                                <button class="btn collection-action-btn collection-secondary-btn${plAllVideosIn(items.filter(p => isVideoEntry(p))) ? ' pl-added' : ''}" data-collection-key="${key}" onclick="event.stopPropagation();addCuratedToPlaylist('${key}')">${plBulkBtnLabel(items.filter(p => isVideoEntry(p)), plAllVideosIn(items.filter(p => isVideoEntry(p))) ? ' · 从我的播放列表移除' : ' · 加入我的播放列表').text}</button>
                             </div>` : '';
         return `
                     <div class="timeline-year ${expandedClass}" data-year="${boxKey}">
@@ -3452,10 +3475,17 @@
       // playlist (separate from the curated collection itself — see plCardAdd).
       function addCuratedToPlaylist(key) {
         const videos = curatedCollectionItems(key).filter(p => isVideoEntry(p));
-        let added = 0;
-        videos.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
-        plSave(); plRender();
-        plToast(added ? `已加入我的播放列表 ${added} 个视频` : '视频已全在我的播放列表中');
+        if (plAllVideosIn(videos)) {
+          const removeUrls = new Set(videos.map(p => p.url));
+          playlist = playlist.filter(x => !removeUrls.has(x.url));
+          plSave(); plRender();
+          plToast(`已从我的播放列表移除 ${videos.length} 个视频`);
+        } else {
+          let added = 0;
+          videos.forEach(p => { if (!playlist.some(x => x.url === p.url)) { playlist.push(p); added++; } });
+          plSave(); plRender();
+          plToast(added ? `已加入我的播放列表 ${added} 个视频` : '视频已全在我的播放列表中');
+        }
       }
 
       // Owner-only — adds/removes one item (by its stable url) to a curated
