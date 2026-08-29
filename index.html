@@ -486,15 +486,6 @@
         padding: 3px 10px;
         transition: background 0.2s ease, border-color 0.2s ease;
       }
-      .collection-secondary-btn.pl-added {
-        background: rgba(37,99,235,.12);
-        color: #2563eb;
-        border-color: rgba(37,99,235,.6);
-      }
-      .collection-secondary-btn.pl-added:hover {
-        background: rgba(37,99,235,.2);
-        border-color: #2563eb;
-      }
       .collection-secondary-btn:hover {
         background: rgba(var(--gold-dr), 0.08);
         border-color: rgba(var(--gold-dr), 0.75);
@@ -3083,7 +3074,7 @@
               btn.classList.toggle('pl-added', l.allIn);
               btn.textContent = l.text;
           });
-          document.querySelectorAll('.collection-secondary-btn[data-collection-key]').forEach(btn => {
+          document.querySelectorAll('.yr-pl-btn[data-collection-key]').forEach(btn => {
               const key = btn.getAttribute('data-collection-key');
               const videos = curatedCollectionItems(key).filter(p => isVideoEntry(p));
               const l = plBulkBtnLabel(videos, plAllVideosIn(videos) ? ' · 从我的播放列表移除' : ' · 加入我的播放列表');
@@ -3393,7 +3384,8 @@
       function buildCollectionBoxHTML(key) {
         const items = curatedCollectionItems(key);
         const boxKey = 'c_' + key;
-        const videoCount = items.filter(p => isVideoEntry(p)).length;
+        const videos = items.filter(p => isVideoEntry(p));
+        const videoCount = videos.length;
         const previewPhotos = items.slice(0, 4);
         const previewHTML = `
                     <div class="year-preview">
@@ -3401,14 +3393,16 @@
                         ${items.length > 4 ? `<div class="preview-more">+${items.length - 4}</div>` : ""}
                     </div>`;
         const expandedClass = expandedYears.has(boxKey) ? "expanded" : "";
+        // Add/remove-all-to-my-playlist lives in the always-visible header, same as the
+        // year box's .yr-pl-btn (see plSyncBulkButtons()'s data-collection-key branch) —
+        // moved out of .timeline-year-content (Aug 2026) where it used to only show while
+        // expanded, unlike every other gallery's equivalent bulk button.
+        const addToPlaylistHTML = videoCount ? `<button class="yr-pl-btn${plAllVideosIn(videos) ? ' pl-added' : ''}" data-collection-key="${key}" onclick="event.stopPropagation();addCuratedToPlaylist('${key}')">${plBulkBtnLabel(videos, plAllVideosIn(videos) ? ' · 从我的播放列表移除' : ' · 加入我的播放列表').text}</button>` : '';
         const actionsHTML = videoCount ? `
                             <div class="collection-action-row">
                                 <span class="collection-action-label">Play 播放 (${videoCount})</span>
                                 <button class="btn collection-action-btn" onclick="event.stopPropagation();playCuratedCollection('${key}')">▶ 顺序</button>
                                 <button class="btn collection-action-btn" onclick="event.stopPropagation();playCuratedCollection('${key}', true)">🔀 随机</button>
-                            </div>
-                            <div style="text-align:center;margin-bottom:4px;">
-                                <button class="btn collection-action-btn collection-secondary-btn${plAllVideosIn(items.filter(p => isVideoEntry(p))) ? ' pl-added' : ''}" data-collection-key="${key}" onclick="event.stopPropagation();addCuratedToPlaylist('${key}')">${plBulkBtnLabel(items.filter(p => isVideoEntry(p)), plAllVideosIn(items.filter(p => isVideoEntry(p))) ? ' · 从我的播放列表移除' : ' · 加入我的播放列表').text}</button>
                             </div>` : '';
         return `
                     <div class="timeline-year ${expandedClass}" data-year="${boxKey}">
@@ -3423,6 +3417,7 @@
                                 </div>
                                 <div class="year-preview-zone">
                                     ${previewHTML}
+                                    ${addToPlaylistHTML}
                                     <div class="year-hint">Click thumbnails for high-res · 点击缩略图打开高清</div>
                                 </div>
                             </div>
