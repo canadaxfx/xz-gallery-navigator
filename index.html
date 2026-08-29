@@ -3163,6 +3163,17 @@
           plPlayItem(0, shuffle ? shuffleArray(playlist) : null);
       }
 
+      var _plDir = 1;  // first press flips to -1 (reverse 倒序) and the label shows it; label always mirrors playback
+      function plPlayDir() {
+          if (!playlist.length) return;
+          _plDir = -_plDir;
+          const b = document.getElementById('plDirBtn');
+          if (b) b.innerHTML = _plDir === 1 ? '▶ Play All<br>顺序播放' : '▶ Play Reverse<br>倒序播放';
+          const panel = document.getElementById('playlistPanel');
+          if (panel) { panel.style.display = 'flex'; setTimeout(plPositionPanel, 0); }
+          plPlayItem(0, _plDir === -1 ? [...playlist].reverse() : null);
+      }
+
       function plPlayItem(index, group) {
           playlistMode = true;
           currentPhotoGroup = group || [...playlist];
@@ -5587,7 +5598,7 @@
         </div>
         <div class="playlist-list" id="plList"></div>
         <div class="playlist-footer">
-            <button class="pl-play-btn" onclick="plPlayFromStart()">▶ Play All<br>顺序播放</button>
+            <button class="pl-play-btn" id="plDirBtn" onclick="plPlayDir()">▶ Play All<br>顺序播放</button>
             <button class="pl-play-btn" onclick="plPlayFromStart(true)">🔀 Shuffle<br>随机播放</button>
             <button class="pl-clear-btn" onclick="plClear()">Clear 清空</button>
         </div>
