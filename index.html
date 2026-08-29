@@ -3163,15 +3163,18 @@
           plPlayItem(0, shuffle ? shuffleArray(playlist) : null);
       }
 
-      var _plDir = -1;  // first press flips to 1: label stays 顺序播放, plays the stored order (newest→oldest). Later presses toggle 倒序/顺序.
+      // The label predicts what the NEXT press plays; pressing plays that, then flips the label.
+      //   顺序播放 (Play All)     = newest → oldest   (playlist is stored newest-first)
+      //   倒序播放 (Play Reverse) = oldest → newest
+      var _plRev = false;
       function plPlayDir() {
           if (!playlist.length) return;
-          _plDir = -_plDir;
-          const b = document.getElementById('plDirBtn');
-          if (b) b.innerHTML = _plDir === 1 ? '▶ Play All<br>顺序播放' : '▶ Play Reverse<br>倒序播放';
           const panel = document.getElementById('playlistPanel');
           if (panel) { panel.style.display = 'flex'; setTimeout(plPositionPanel, 0); }
-          plPlayItem(0, _plDir === -1 ? [...playlist].reverse() : null);
+          plPlayItem(0, _plRev ? [...playlist].reverse() : null);
+          _plRev = !_plRev;
+          const b = document.getElementById('plDirBtn');
+          if (b) b.innerHTML = _plRev ? '▶ Play Reverse<br>倒序播放' : '▶ Play All<br>顺序播放';
       }
 
       function plPlayItem(index, group) {
