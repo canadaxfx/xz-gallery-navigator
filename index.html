@@ -41,8 +41,9 @@
 .playlist-footer{display:flex;gap:6px;padding:8px 10px;border-top:1px solid #e5e7eb;flex-shrink:0}
 .pl-play-btn{flex:1;min-width:0;padding:5px 4px;background:var(--grad-gold);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:10px;font-weight:600;line-height:1.35;text-align:center;white-space:normal}
 .pl-clear-btn{padding:6px 10px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;font-size:10px;white-space:nowrap}
-.pl-loop-btn{flex-shrink:0;background:rgba(255,255,255,0.14);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:26px;height:26px;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .15s,background .15s,box-shadow .15s}
-.pl-loop-btn.on{opacity:1;background:var(--grad-gold);border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.55)}
+.pl-loop-btn{flex-shrink:0;background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.38);border-radius:6px;width:26px;height:26px;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.85;transition:opacity .15s,background .15s,border-color .15s}
+.pl-loop-btn:hover{background:rgba(255,255,255,0.14)}
+.pl-loop-btn.on{opacity:1;background:#fff;border-color:#fff;color:#111}
 .playlist-header .pl-h-title{flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pl-seg{display:flex;flex:1;min-width:0;border-radius:6px;overflow:hidden}
 .pl-seg .pl-play-btn{border-radius:0}
@@ -1301,23 +1302,122 @@
         left: 50%;
         bottom: 16px;
         transform: translateX(-50%);
-        width: min(720px, calc(100% - 32px));
+        width: min(600px, calc(100% - 24px));
         box-sizing: border-box;
+        gap: 11px;
+        padding: 8px 16px;
         border-top: none;
         border-radius: 12px;
         box-shadow: 0 6px 22px rgba(0,0,0,.45);
         transition: opacity .2s ease, transform .2s ease;
         z-index: 5;
       }
-      /* ⌄ hide-bar toggle → true unobstructed fullscreen; tap the video to bring it back */
+      /* Wide fullscreen (landscape / desktop, ≥601px): everything on ONE row, seek capped. */
+      @media (min-width: 601px) {
+        .vc-fs-wrap:fullscreen .pl-fs-controls,
+        .vc-fs-wrap:-webkit-full-screen .pl-fs-controls { flex-wrap: nowrap; }
+        .vc-fs-wrap:fullscreen .vc-middle,
+        .vc-fs-wrap:-webkit-full-screen .vc-middle { flex: 1 1 auto; max-width: 260px; min-width: 120px; order: 0; }
+      }
+      /* Narrow portrait (≤600px): seek drops to its own full-width row, buttons stay together. */
+      @media (max-width: 600px) {
+        .vc-fs-wrap:fullscreen .pl-fs-controls,
+        .vc-fs-wrap:-webkit-full-screen .pl-fs-controls { gap: 8px; padding: 6px 12px; width: calc(100% - 16px); }
+        .vc-fs-wrap:fullscreen .pl-fs-nav-btn,
+        .vc-fs-wrap:-webkit-full-screen .pl-fs-nav-btn { width: 30px; height: 30px; }
+      }
+      /* tap the video to toggle all chrome (bar + corner exit) */
       .vc-fs-wrap.bar-hidden .pl-fs-controls {
         opacity: 0;
         transform: translateX(-50%) translateY(140%);
         pointer-events: none;
       }
-      #vcHideBarBtn { display: none; }
-      .vc-fs-wrap:fullscreen #vcHideBarBtn,
-      .vc-fs-wrap:-webkit-full-screen #vcHideBarBtn { display: flex; }
+      .vc-fs-wrap.bar-hidden #vcFsClose {
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
+      }
+
+      /* top-right corner exit — the lightbox convention; toggles with the rest of the chrome. */
+      #vcFsClose { display: none; }
+      .vc-fs-wrap:fullscreen #vcFsClose,
+      .vc-fs-wrap:-webkit-full-screen #vcFsClose {
+        display: flex; align-items: center; justify-content: center;
+        position: absolute; top: 14px; right: 14px; z-index: 31;
+        width: 40px; height: 40px; border-radius: 50%;
+        background: rgba(0,0,0,0.5); border: none; color: #fff; cursor: pointer;
+        transition: background .15s, opacity .2s ease, transform .2s ease;
+      }
+      .vc-fs-wrap:fullscreen #vcFsClose:hover,
+      .vc-fs-wrap:-webkit-full-screen #vcFsClose:hover { background: rgba(0,0,0,0.72); }
+      #vcFsClose svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+
+      /* "Up Next" — compact jump-ahead list; fullscreen only, toggled via 🎬. Lives inside
+         .vc-fs-wrap so it paints in the fullscreen top layer without exiting. */
+      #vcUpNext { display: none; }
+      .vc-fs-wrap:fullscreen #vcUpNext.open,
+      .vc-fs-wrap:-webkit-full-screen #vcUpNext.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 62px;
+        right: 16px;
+        bottom: auto;
+        width: min(260px, calc(100% - 20px));
+        max-height: calc(100% - 150px);
+        overflow: hidden;
+        background: rgba(15,15,20,.92);
+        border-radius: 12px;
+        padding: 8px;
+        z-index: 20;
+        box-shadow: 0 6px 22px rgba(0,0,0,.5);
+      }
+      #vcUpNext .vcun-head { display: flex; align-items: center; gap: 6px; padding: 2px 2px 6px; flex-shrink: 0; }
+      #vcUpNextList { overflow-y: auto; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 5px; }
+      #vcUpNext .vcun-title {
+        flex: 1; min-width: 0;
+        color: #cbd5e1; font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      #vcUpNext .vcun-hbtn {
+        flex-shrink: 0; width: 26px; height: 26px; border-radius: 6px;
+        border: 1px solid rgba(255,255,255,.38); background: transparent;
+        color: #e5e7eb; font-size: 13px; cursor: pointer; line-height: 1; opacity: .85;
+        display: flex; align-items: center; justify-content: center;
+        transition: background .15s, border-color .15s, opacity .15s;
+      }
+      #vcUpNext .vcun-hbtn:hover { background: rgba(255,255,255,.14); }
+      #vcUpNext .vcun-hbtn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+      #vcUpNext .vcun-hbtn.on,
+      #vcUpNext .vcun-hbtn.on:hover { background: #fff; border-color: #fff; color: #111; opacity: 1; }
+      #vcUpNext .vcun-item {
+        display: flex; align-items: center; gap: 8px; padding: 5px; border-radius: 8px;
+        cursor: pointer; width: 100%; border: none; text-align: left;
+        background: rgba(255,255,255,.05); font-family: inherit;
+      }
+      #vcUpNext .vcun-item:hover { background: rgba(255,255,255,.14); }
+      #vcUpNext .vcun-now { background: #2c2c38; border-left: 3px solid #e0955a; }
+      #vcUpNext .vcun-item img {
+        width: 58px; height: 34px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: #333;
+      }
+      #vcUpNext .vcun-item-t {
+        flex: 1; min-width: 0; color: #f3f4f6; font-size: 12px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      #vcUpNext .vcun-item-m { color: #9ca3af; font-size: 10px; }
+      #vcUpNext .vcun-empty { color: #9ca3af; font-size: 12px; padding: 10px 6px; }
+      @media (max-width: 600px) {
+        .vc-fs-wrap:fullscreen #vcUpNext.open,
+        .vc-fs-wrap:-webkit-full-screen #vcUpNext.open { width: min(220px, calc(100% - 16px)); right: 10px; padding: 6px; }
+        #vcUpNext .vcun-item { gap: 6px; padding: 4px; }
+        #vcUpNext .vcun-item img { width: 44px; height: 26px; }
+        #vcUpNext .vcun-item-t { font-size: 11px; }
+      }
+
+      /* hide the quality / file-size / download-version badges over the video in fullscreen */
+      .vc-fs-wrap:fullscreen #badgeQuality, .vc-fs-wrap:-webkit-full-screen #badgeQuality,
+      .vc-fs-wrap:fullscreen #badgeSize, .vc-fs-wrap:-webkit-full-screen #badgeSize,
+      .vc-fs-wrap:fullscreen #badgeAlt, .vc-fs-wrap:-webkit-full-screen #badgeAlt { display: none !important; }
 
       .modal-photo {
         max-width: 100%;
@@ -2588,8 +2688,10 @@
 
         <!-- Video control bar (shown when a video is open) -->
         <div class="pl-fs-controls" id="plNavBar">
-            <button class="pl-fs-nav-btn" id="plFsPrev" onclick="navigatePhoto(-1)" title="Previous"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="pl-fs-nav-btn" id="plFsPrev" onclick="navigatePhoto(-1)" title="上一个 Previous"><svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M5 6h2.4v12H5z M19 6v12l-11-6z"/></svg></button>
             <button class="vc-btn" id="vcPlayBtn" onclick="vcTogglePlay()">▶</button>
+            <button class="pl-fs-nav-btn" id="plFsNext" onclick="navigatePhoto(1)" title="下一个 Next"><svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M16.6 6H19v12h-2.4z M5 6l11 6-11 6z"/></svg></button>
+            <button class="vc-btn" id="vcMuteBtn" onclick="vcToggleMute()" title="Mute"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
             <div class="vc-middle">
                 <input type="range" class="vc-seek" id="vcSeek" value="0" min="0" step="0.1">
                 <div style="display:flex;justify-content:space-between">
@@ -2597,12 +2699,11 @@
                     <span class="vc-time" id="vcDuration">0:00</span>
                 </div>
             </div>
-            <button class="vc-btn" id="vcMuteBtn" onclick="vcToggleMute()" title="Mute"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
-            <button class="vc-btn" id="vcFsBtn" onclick="vcFullscreen()" title="Fullscreen"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
-            <button class="vc-btn" id="vcHideBarBtn" onclick="vcToggleBar()" title="隐藏控制栏 / Hide bar"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-            <button class="pl-fs-nav-btn" id="plFsNext" onclick="navigatePhoto(1)" title="Next"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
             <button id="vcPlBtn" onclick="vcOpenPlaylist()" title="Playlist 播放列表">🎬<span id="vcPlBadge"></span></button>
+            <button class="vc-btn" id="vcFsBtn" onclick="vcFullscreen()" title="Fullscreen"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
         </div>
+        <div id="vcUpNext"><div class="vcun-head"><span class="vcun-title">接下来 · Up Next</span><button id="vcUnLoop" class="vcun-hbtn" onclick="plToggleLoop()" title="循环播放 Loop">🔁</button></div><div id="vcUpNextList"></div></div>
+        <button id="vcFsClose" onclick="vcExitFs()" title="退出全屏 Exit fullscreen"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <div class="photo-info-panel">
@@ -3156,11 +3257,12 @@
       // 循环播放 — when on, the queue wraps at both ends (auto-advance past the last item
       // loops back to the first; prev/next wrap too). When off, playback stops at the end.
       function _plSyncLoopBtn() {
-          const b = document.getElementById('plLoopBtn');
-          if (!b) return;
-          b.classList.toggle('on', _plLoop);
-          b.setAttribute('aria-pressed', _plLoop ? 'true' : 'false');
-          b.title = _plLoop ? '循环播放：开' : '循环播放：关';
+          [document.getElementById('plLoopBtn'), document.getElementById('vcUnLoop')].forEach((b) => {
+              if (!b) return;
+              b.classList.toggle('on', _plLoop);
+              b.setAttribute('aria-pressed', _plLoop ? 'true' : 'false');
+              b.title = _plLoop ? '循环播放：开' : '循环播放：关';
+          });
       }
       function plToggleLoop() {
           _plLoop = !_plLoop;
@@ -3361,7 +3463,11 @@
       function vcSyncFsBtn() {
           const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
           const wrap = document.getElementById('vcFsWrap');
-          if (wrap && !isFs) wrap.classList.remove('bar-hidden');   // don't carry hidden-bar state out of fullscreen
+          if (wrap && !isFs) {
+              wrap.classList.remove('bar-hidden');   // don't carry hidden-bar state out of fullscreen
+              const un = document.getElementById('vcUpNext');
+              if (un) un.classList.remove('open');
+          }
           const btn = document.getElementById('vcFsBtn');
           if (!btn) return;
           btn.innerHTML = isFs ? _VC_FS_ICON_EXIT : _VC_FS_ICON_ENTER;
@@ -3370,35 +3476,69 @@
       document.addEventListener('fullscreenchange', vcSyncFsBtn);
       document.addEventListener('webkitfullscreenchange', vcSyncFsBtn);
 
-      // ⌄ — collapse the control bar for a truly unobstructed fullscreen view.
-      function vcToggleBar() {
-          const w = document.getElementById('vcFsWrap');
-          if (w) w.classList.toggle('bar-hidden');
-      }
-      // Tap the video (in fullscreen) to hide/show the bar.
+      function _vcInFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+      function _vcCloseUpNext() { const un = document.getElementById('vcUpNext'); if (un) un.classList.remove('open'); }
+
+      // Tap the video (in fullscreen) to show/hide the control bar — the same gesture every
+      // video player uses. If the Up Next overlay is open, the first tap just closes that.
       (function () {
           const mc = document.querySelector('.modal-photo-container');
           if (!mc) return;
           mc.addEventListener('click', (e) => {
-              if (!(document.fullscreenElement || document.webkitFullscreenElement)) return;
-              if (e.target.closest('.nav-arrow, .pl-fs-controls, #postTextPanel')) return;
+              if (!_vcInFs()) return;
+              if (e.target.closest('.nav-arrow, .pl-fs-controls, #postTextPanel, #vcUpNext')) return;
+              const un = document.getElementById('vcUpNext');
+              if (un && un.classList.contains('open')) { un.classList.remove('open'); return; }
               const w = document.getElementById('vcFsWrap');
               if (w) w.classList.toggle('bar-hidden');
           });
       })();
-      // 🎬 in fullscreen: the playlist panel lives outside the fullscreened element and can't
-      // paint on top of it — so leave fullscreen first, then open the panel.
+
+      // 🎬 — in fullscreen it toggles a compact "Up Next" list (rendered inside the fullscreened
+      // element, so no exit needed); outside fullscreen it opens the full playlist panel.
       function vcOpenPlaylist() {
-          const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-          if (fsEl) {
-              (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
-              setTimeout(() => {
-                  const p = document.getElementById('playlistPanel');
-                  if (p) { p.style.display = 'flex'; try { plPositionPanel(); } catch (e) {} }
-              }, 90);
-          } else {
-              plTogglePanel();
+          if (!_vcInFs()) { plTogglePanel(); return; }
+          const box = document.getElementById('vcUpNext');
+          if (!box) return;
+          if (box.classList.contains('open')) { box.classList.remove('open'); return; }
+          box.classList.add('open');
+          vcRenderUpNext();
+      }
+      function _vcUnLabel(p) {
+          return (p && p.tags && p.tags.length) ? ('#' + p.tags[0]) : ((p && (p.groupName || p.date)) || '');
+      }
+      function vcRenderUpNext() {
+          const list = document.getElementById('vcUpNextList');
+          if (!list) return;
+          const g = currentPhotoGroup || [];
+          const titleEl = document.querySelector('#vcUpNext .vcun-title');
+          if (titleEl) titleEl.textContent = '接下来 · Up Next · ' + (currentPhotoIndex + 1) + ' / ' + g.length;
+          _plSyncLoopBtn();
+          let html = '';
+          for (let i = 0; i < g.length; i++) {
+              const p = g[i] || {};
+              const now = (i === currentPhotoIndex);
+              const meta = now ? '正在播放 Now playing' : (p.duration ? fmtDuration(p.duration) : '');
+              html +=
+                  '<button class="vcun-item' + (now ? ' vcun-now' : '') + '" onclick="vcJumpTo(' + i + ')">' +
+                    '<img src="' + generateThumbnail(p.url, 'm') + '" onerror="this.style.visibility=\'hidden\'" alt="">' +
+                    '<span class="vcun-item-t">' + (now ? '▶ ' : '') + _vcUnLabel(p) +
+                      (meta ? '<span class="vcun-item-m"> · ' + meta + '</span>' : '') +
+                    '</span>' +
+                  '</button>';
           }
+          list.innerHTML = html || '<div class="vcun-empty">播放列表为空 · Empty</div>';
+          requestAnimationFrame(() => {
+              const n = list.querySelector('.vcun-now');
+              if (n) n.scrollIntoView({ block: 'center' });
+          });
+      }
+      function vcJumpTo(i) {
+          _vcCloseUpNext();
+          goToPhoto(i);
+      }
+      function vcExitFs() {
+          (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
       }
 
       function plToast(msg) {
@@ -4277,6 +4417,8 @@
           updateThumbnailsActive();
           updateNavigationButtons();
           if (playlistMode) plRender();   // keep the playlist panel's active-item highlight in sync
+          const _un = document.getElementById('vcUpNext');
+          if (_un && _un.classList.contains('open')) vcRenderUpNext();   // keep "Up Next" current
         }
       }
 
@@ -5713,7 +5855,7 @@
             <span class="pl-h-title">🎬 Playlist 播放列表</span>
             <span class="playlist-count-badge" id="plPanelCount">0</span>
             <button id="plLoopBtn" class="pl-loop-btn" onclick="event.stopPropagation();plToggleLoop()" title="循环播放 Loop" aria-pressed="false" style="margin-left:auto">🔁</button>
-            <button onclick="plTogglePanel()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:15px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">&times;</button>
+            <button onclick="plTogglePanel()" title="关闭 Close" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         <div class="playlist-list" id="plList"></div>
         <div class="playlist-footer">
