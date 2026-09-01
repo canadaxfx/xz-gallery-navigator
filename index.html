@@ -4373,6 +4373,10 @@
           const ytId = getYouTubeId(originalUrl);
           return ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
         }
+        // 0b. Article-archive videos (articles/video/X.mp4) — a poster jpg sits beside the file
+        if (originalUrl.includes("/articles/video/")) {
+          return originalUrl.replace(/\.(mp4|mov|m4v|webm)(\?.*)?$/i, "_poster.jpg");
+        }
         // 1. Handle New Cloudflare R2 Links
         if (originalUrl.includes("/full/")) {
           let thumbUrl = originalUrl.replace("/full/", "/thumbs/");
