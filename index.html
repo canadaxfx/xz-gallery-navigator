@@ -3035,7 +3035,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20260829-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20260908-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
@@ -4014,6 +4014,21 @@
         }
         return pop;
       }
+      // platform_links may be the legacy {platform:url} object OR the current list
+      // [{platform,url},…] — every link is independent, so the same platform can
+      // appear more than once (e.g. two weibo cross-posts). Always read via this.
+      function normPlatformLinks(pl) {
+        if (Array.isArray(pl)) {
+          return pl.filter(x => x && x.platform && x.url)
+                   .map(x => ({ platform: String(x.platform).trim(), url: String(x.url).trim() }));
+        }
+        if (pl && typeof pl === 'object') {
+          return Object.entries(pl).filter(([, v]) => v)
+                   .map(([k, v]) => ({ platform: String(k).trim(), url: String(v).trim() }));
+        }
+        return [];
+      }
+
       function setPlatformBtnBehavior(btn, mainLink, extraLinks, primarySource) {
         const existingPop = document.getElementById('platformPopover');
         if (existingPop) existingPop.style.display = 'none';
@@ -4024,9 +4039,9 @@
         // primarySource may be any free-typed platform not in lmap (see
         // XZ Gallery Navigator CLAUDE.md "Platform Link Label Defaulted to Weibo").
         if (w) links.push({label: lmap[primarySource] || primarySource || 'Weibo 微博', url: /^https?/i.test(w) ? w : 'https://' + w});
-        if (extraLinks && typeof extraLinks === 'object') {
-          Object.entries(extraLinks).forEach(([k, v]) => { if (v) links.push({label: lmap[String(k).toLowerCase()] || k, url: String(v)}); });
-        }
+        normPlatformLinks(extraLinks).forEach(({ platform, url }) => {
+          links.push({ label: lmap[platform.toLowerCase()] || platform, url });
+        });
         if (!links.length) { btn.style.display = 'none'; return; }
         btn.style.display = 'inline-block';
         btn.onclick = null;
@@ -4124,9 +4139,7 @@
         };
         const _stypes = Array.isArray(photo.platform) ? photo.platform : (photo.platform ? [photo.platform] : []);
         _stypes.forEach(_addBadge);
-        if (photo.platform_links && typeof photo.platform_links === 'object') {
-            Object.keys(photo.platform_links).forEach(_addBadge);
-        }
+        normPlatformLinks(photo.platform_links).forEach(x => _addBadge(x.platform));
         // Fall back to the citation link's implied platform (rawSource, default
         // 'weibo') only when the entry's own `platform` array was empty --
         // NOT when the merged badge list happens to be non-empty. The old
@@ -5310,9 +5323,7 @@
             const _st = Array.isArray(item.platform) ? item.platform : [item.platform];
             _st.forEach(t => _itemPlatforms.add(String(t).toLowerCase()));
           }
-          if (item.platform_links && typeof item.platform_links === 'object') {
-            Object.keys(item.platform_links).forEach(k => _itemPlatforms.add(String(k).toLowerCase()));
-          }
+          normPlatformLinks(item.platform_links).forEach(x => _itemPlatforms.add(x.platform.toLowerCase()));
           if (!_itemPlatforms.size) _itemPlatforms.add('weibo');
           if (_itemPlatforms.has('xiaohongshu') || _itemPlatforms.has('xhs')) _itemPlatforms.add('rednote');
           if (_itemPlatforms.has('ins')) _itemPlatforms.add('instagram');
