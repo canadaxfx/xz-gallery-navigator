@@ -61,14 +61,14 @@
 @media(max-width:600px){.playlist-panel{width:calc(100vw - 90px)}}
 @media(max-height:500px){.pl-fs-controls{padding:4px 8px}.pl-fs-nav-btn,.vc-btn{width:26px!important;height:26px!important}#vcPlayBtn{width:30px!important;height:30px!important}}
 @media(max-width:600px){.pl-fs-controls{flex-wrap:wrap;padding:6px 8px;gap:6px;justify-content:center}.vc-middle{order:10;flex:0 0 100%!important;min-width:100%!important}}
-.pl-fs-controls{display:none;align-items:center;gap:6px;padding:4px 8px;background:var(--surface-w);border-top:1px solid var(--border);flex-shrink:0;border-radius:0 0 8px 8px}
-.pl-fs-nav-btn{background:rgba(0,0,0,0.18);color:#111;border:1px solid rgba(0,0,0,0.35);border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;transition:all .15s;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;padding:0}
-.pl-fs-nav-btn:hover{background:rgba(0,0,0,0.28);border-color:rgba(0,0,0,0.5)}
+.pl-fs-controls{display:none;align-items:center;gap:6px;padding:4px 8px;background:transparent;flex-shrink:0;border-radius:0 0 8px 8px}
+.pl-fs-nav-btn{background:transparent;color:#111;border:none;border-radius:10px;width:34px;height:34px;font-size:15px;cursor:pointer;transition:background .15s;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;padding:0}
+.pl-fs-nav-btn:hover{background:rgba(20,20,25,.08)}
 .pl-fs-nav-btn:disabled{opacity:.25;cursor:default}
 .pl-fs-nav-btn svg{width:16px;height:16px;fill:none;stroke:#111;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .pl-fs-nav-counter{color:rgba(0,0,0,0.6);font-size:12px;min-width:50px;text-align:center}
-.vc-btn{background:rgba(0,0,0,0.18);color:#111;border:1px solid rgba(0,0,0,0.35);border-radius:8px;width:30px;height:30px;font-size:13px;cursor:pointer;line-height:1;flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center;padding:0}
-.vc-btn:hover{background:rgba(0,0,0,0.28);border-color:rgba(0,0,0,0.5)}
+.vc-btn{background:transparent;color:#111;border:none;border-radius:10px;width:30px;height:30px;font-size:13px;cursor:pointer;line-height:1;flex-shrink:0;transition:background .15s;display:flex;align-items:center;justify-content:center;padding:0}
+.vc-btn:hover{background:rgba(20,20,25,.08)}
 .vc-btn svg{width:15px;height:15px;fill:none;stroke:#111;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 #vcPlayBtn{background:#1a1a1a;border:none;border-radius:50%;width:36px;height:36px;font-size:15px;color:#fff;font-weight:700}
 #vcPlayBtn:hover{background:#333;transform:scale(1.05)}
@@ -1149,8 +1149,11 @@
       }
 
       .modal-content {
+        --m-hover: rgba(20,20,25,.08);
+        --r-lg: 16px;
+        --r-sm: 10px;
         background: var(--surface-0);
-        border-radius: 15px;
+        border-radius: var(--r-lg);
         max-width: min(90vw, 1200px);
         max-height: 90vh;
         width: 100%;
@@ -1160,16 +1163,24 @@
         flex-direction: column;
         overflow-y: auto;
         overflow-x: hidden;
+        box-shadow: 0 24px 64px -16px rgba(0,0,0,.55);
+        border: 1px solid rgba(0,0,0,.06);
       }
+      /* The washi light themes make every --surface-* token translucent (paper texture
+         shows through the body). For the photo modal — a media viewer over a text-heavy
+         page — force an opaque surface so header text keeps its contrast and the page
+         doesn't read through, matching Misc/Archive. Each value is that theme's own
+         --surface-0 tint at full opacity. Dark themes already use an opaque hex. */
+      [data-theme="washi-garnet"] #photoModal .modal-content { background: #f8f6f4; }
+      [data-theme="washi-slate"]  #photoModal .modal-content { background: #f5f7fc; }
 
       /* Modal Header */
       .modal-header {
         display: flex;
         flex-direction: column;
-        padding: 3px 10px 3px;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface-w);
-        border-radius: 15px 15px 0 0;
+        padding: 6px 10px 4px;
+        background: transparent;
+        border-radius: var(--r-lg) var(--r-lg) 0 0;
         flex-shrink: 0;
         gap: 2px;
       }
@@ -1205,23 +1216,27 @@
       }
 
       .close-modal {
-        background: rgba(20,20,20,0.45);
+        background: rgba(0,0,0,0.06);
         border: none;
-        font-size: 22px;
         cursor: pointer;
-        color: #fff;
+        color: #4b5563;
         padding: 0;
-        width: 28px; height: 28px;
+        width: 32px; height: 32px;
         border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
-        transition: background 0.2s;
+        transition: background 0.15s ease, color 0.15s ease;
         line-height: 1;
+      }
+      .close-modal svg {
+        width: 15px; height: 15px;
+        stroke: currentColor; stroke-width: 2.2;
+        stroke-linecap: round; stroke-linejoin: round; fill: none;
       }
 
       .close-modal:hover {
-        background: rgba(20,20,20,0.7);
-        color: #fff;
+        background: rgba(0,0,0,0.12);
+        color: #111;
       }
 
       .post-text-pill {
@@ -1309,6 +1324,7 @@
         padding: 8px 16px;
         border-top: none;
         border-radius: 12px;
+        background: var(--surface-w);
         box-shadow: 0 6px 22px rgba(0,0,0,.45);
         transition: opacity .2s ease, transform .2s ease;
         z-index: 5;
@@ -1481,11 +1497,10 @@
       /* Thumbnail Strip */
       .thumbnail-strip {
         padding: 8px 14px;
-        background: var(--surface-w);
-        border-top: 1px solid var(--border);
+        background: #15151a;
         overflow-x: auto;
         white-space: nowrap;
-        border-radius: 0 0 15px 15px;
+        border-radius: 0 0 var(--r-lg) var(--r-lg);
         min-height: 60px;
         flex-shrink: 0;
       }
@@ -1519,39 +1534,32 @@
 
       /* Photo Actions Panel */
       .photo-info-panel {
-        padding: 8px 10px;
+        padding: 10px;
         background: var(--surface-0);
-        border-top: 1px solid var(--border);
         max-height: 250px;
         overflow-y: auto;
         flex-shrink: 0;
       }
 
-      .close-bottom-btn {
-        font-size: 20px !important; /* Smaller size */
-        color: #000000 !important;
-        width: 30px;
-        height: 30px;
-        background: none !important;
-        border: 2px solid #e0e0e0 !important;
-        border-radius: 50%;
-        padding: 0;
-        margin-left: 10px;
-        line-height: 1;
+      /* Both dismiss × buttons share .close-modal (flat ghost circle + thin SVG glyph).
+         The bottom one sits on its own right-aligned row above the Add-to-Playlist button
+         so it can't crowd it on narrow screens; the Add button stays centered. */
+      .pl-addrow {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 10px;
       }
-
-      .close-bottom-btn:hover {
-        background: #e9ecef !important;
-        transform: scale(1.1);
-      }
+      .pl-addrow #plModalAddBtn2 { align-self: center; }
+      .pl-addrow .close-bottom-btn { order: -1; align-self: flex-end; flex-shrink: 0; }
 
       /* Enhanced Download Section */
       .download-section {
-        background: var(--surface-w);
-        border-radius: 15px;
-        padding: 8px;
+        background: transparent;
+        border-radius: 0;
+        padding: 0;
         margin-top: 0px;
-        border: 2px solid var(--border);
+        border: none;
       }
 
       .download-section h4 {
@@ -1571,11 +1579,11 @@
 
       .action-btn {
         flex: 1;
-        min-width: 160px;
-        max-width: 200px;
-        padding: 6px 10px;
+        min-width: 150px;
+        max-width: 220px;
+        padding: 8px 12px;
         border: none;
-        border-radius: 8px;
+        border-radius: var(--r-sm);
         font-size: 12px;
         font-weight: 600;
         cursor: pointer;
@@ -1636,6 +1644,16 @@
         border: none;
       }
       .action-btn.weibo-btn:hover { background: var(--grad-red-h); }
+
+      /* "View on Platform" (#weiboLinkBtn) → secondary outline, next to the filled
+         "Download HD" primary. id-scoped so it beats the .source-btn.{weibo,douyin,rednote}
+         gradient rules JS assigns per platform. */
+      #weiboLinkBtn.action-btn {
+        background: transparent;
+        color: #3a4356;
+        border: 1px solid #c7ccd6;
+      }
+      #weiboLinkBtn.action-btn:hover { background: rgba(20,20,25,.05); }
 
       .badge-4k {
         position: absolute;
@@ -1968,7 +1986,7 @@
         .modal {
           padding: 5px;
           align-items: flex-start;
-          padding-top: 5px;
+          padding-top: 20px;
         }
 
         .modal-content {
@@ -2037,7 +2055,7 @@
         }
 
         .download-section {
-          padding: 8px;
+          padding: 0;
           margin-top: 0px;
         }
 
@@ -2073,7 +2091,7 @@
         }
 
         .close-modal {
-          font-size: 40px;
+          width: 34px; height: 34px;
         }
       }
 
@@ -2081,7 +2099,7 @@
       @media (max-width: 480px) {
         .modal {
           padding: 2px;
-          padding-top: 5px;
+          padding-top: 20px;
         }
 
         .modal-content {
@@ -2639,7 +2657,7 @@
             <div class="modal-header-controls">
               <span id="sourceBadge"></span>
             </div>
-            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <button class="close-modal" onclick="closeModal()" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           </div>
           <div class="modal-header-bottom" id="modalDateTag"></div>
           <div class="group-title" id="groupTitle" style="display:none;"></div>
@@ -2711,15 +2729,9 @@
 
         <div class="photo-info-panel">
           <div class="download-section">
-            <div style="display:flex;align-items:center;justify-content:center;margin-bottom:6px;position:relative;">
+            <div class="pl-addrow">
               <button class="pl-modal-add-btn" id="plModalAddBtn2" onclick="plModalToggle()" style="display:none;font-size:13px;padding:5px 16px;">+ 加入播放列表 Add to Playlist</button>
-              <button
-                class="close-modal close-bottom-btn"
-                onclick="closeModal()"
-                style="position:absolute;right:0;"
-              >
-                ×
-              </button>
+              <button class="close-modal close-bottom-btn" onclick="closeModal()" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             </div>
 
             <div class="download-actions-row" id="actionButtonsRow">
@@ -2749,9 +2761,7 @@
 
     <div id="reportModal" class="modal hidden">
       <div class="modal-content" style="max-width: 500px">
-        <button class="close-modal" onclick="closeReportModal()" style="position:absolute;top:12px;right:12px;">
-          &times;
-        </button>
+        <button class="close-modal" onclick="closeReportModal()" style="position:absolute;top:12px;right:12px;" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <div class="report-form-container" style="padding: 10px">
           <div style="text-align: center; margin-bottom: 20px">
             <h3 style="color: #5E9FD8; margin-bottom: 10px">
@@ -3037,7 +3047,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20260909-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20260910-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
