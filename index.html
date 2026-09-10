@@ -1645,16 +1645,6 @@
       }
       .action-btn.weibo-btn:hover { background: var(--grad-red-h); }
 
-      /* "View on Platform" (#weiboLinkBtn) → secondary outline, next to the filled
-         "Download HD" primary. id-scoped so it beats the .source-btn.{weibo,douyin,rednote}
-         gradient rules JS assigns per platform. */
-      #weiboLinkBtn.action-btn {
-        background: transparent;
-        color: #3a4356;
-        border: 1px solid #c7ccd6;
-      }
-      #weiboLinkBtn.action-btn:hover { background: rgba(20,20,25,.05); }
-
       .badge-4k {
         position: absolute;
         bottom: 0px;
@@ -2048,7 +2038,7 @@
         }
 
         .photo-info-panel {
-          padding: 12px 15px;
+          padding: 12px 10px;
           flex-shrink: 0;
           max-height: none;
           overflow-y: visible;
@@ -2067,7 +2057,6 @@
         .action-btn {
           padding: 5px 8px;
           font-size: 12px;
-          min-width: 170px;
         }
 
         .download-hint {
@@ -2157,7 +2146,7 @@
         }
 
         .photo-info-panel {
-          padding: 10px 12px;
+          padding: 10px;
           flex-shrink: 0;
         }
 
@@ -3047,7 +3036,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20260910-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20260910-2'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
