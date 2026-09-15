@@ -4612,6 +4612,32 @@
         return photos;
       }
 
+      // Collapses cross-gallery duplicates of the same physical asset (a post
+      // co-created/jointly published by two accounts, e.g. XZ + a brand, and
+      // filed in more than one gallery's own JSON) down to a single card, so
+      // browse/search results don't show the same video/photo twice. Keyed on
+      // `url` (the R2 asset) — the same identity Navigator already trusts for
+      // playlist dedup (plCardAdd etc.), reused here for the same reason: two
+      // JSON entries with different ids/galleries but the same `url` are the
+      // same physical file. When a url exists in more than one gallery, keep
+      // the copy from the highest-priority gallery: Studio > Misc > Archive.
+      const GALLERY_DEDUP_PRIORITY = { studio: 0, misc: 1, archive: 2 };
+      function dedupeCrossGalleryByUrl(list) {
+        const bestIndexByUrl = new Map();
+        const result = [];
+        for (const p of list) {
+          if (!p.url) { result.push(p); continue; }
+          const existingIdx = bestIndexByUrl.get(p.url);
+          if (existingIdx === undefined) {
+            bestIndexByUrl.set(p.url, result.length);
+            result.push(p);
+          } else if ((GALLERY_DEDUP_PRIORITY[p._gallery] ?? 99) < (GALLERY_DEDUP_PRIORITY[result[existingIdx]._gallery] ?? 99)) {
+            result[existingIdx] = p;
+          }
+        }
+        return result;
+      }
+
       // Sorts, reassigns global sequential ids, and rebuilds the year dropdown.
       // Shared by the initial fast load and the background backfill below.
       // `rawPhotos` is the FULL set including any `hidden:true` entries (Misc
@@ -4620,7 +4646,8 @@
       // without re-fetching anything over the network.
       function commitPhotoData(rawPhotos) {
         _rawPhotoData = rawPhotos;
-        const photos = window._xzShowAll ? rawPhotos.slice() : rawPhotos.filter(p => !p.hidden);
+        const visible = window._xzShowAll ? rawPhotos.slice() : rawPhotos.filter(p => !p.hidden);
+        const photos = dedupeCrossGalleryByUrl(visible);
         photos.sort((a, b) => new Date(b.date) - new Date(a.date));
         photos.forEach((photo, index) => { photo.id = index + 1; });
 
