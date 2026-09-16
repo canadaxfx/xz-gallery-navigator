@@ -1624,6 +1624,7 @@
       .action-btn.download-btn {
         background: var(--grad-red);
         color: white;
+        border: none;
       }
       .action-btn.download-btn:hover { background: var(--grad-red-h); }
 
@@ -1708,11 +1709,14 @@
         display: flex;
         flex-wrap: nowrap;
         gap: 4px;
-        overflow: hidden;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
         flex: 1;
         min-width: 0;
         align-items: center;
       }
+      .modal-tags-container::-webkit-scrollbar { display: none; }
       .modal-tag-pill {
         font-size: 10px;
         padding: 2px 8px;
@@ -1721,6 +1725,7 @@
         border-radius: 15px;
         border: 1px solid #e4e6eb;
         white-space: nowrap;
+        flex-shrink: 0;
         transition: all 0.2s ease;
       }
 
@@ -2034,7 +2039,7 @@
         }
 
         .photo-info-panel {
-          padding: 12px 10px;
+          padding: 10px;
           flex-shrink: 0;
           max-height: none;
           overflow-y: visible;
@@ -2089,7 +2094,6 @@
 
         .modal-content {
           padding: 5px;
-          border-radius: 10px;
           max-height: 95vh;
         }
 
