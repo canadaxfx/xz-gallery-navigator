@@ -3073,10 +3073,22 @@
       // Normalizes one raw JSON entry from any of the 3 galleries into a
       // common shape. Does not touch the source galleries' own data/files —
       // all three keep their existing schemas unchanged.
+      // Media urls are compared as plain strings everywhere (cross-gallery dedup,
+      // playlist, curated collections) — so a percent-encoded copy of an address
+      // ("20260924_%E8%8D%A3%E8%80%80_…" vs "20260924_荣耀_…", same R2 file) used to
+      // count as a different item and show twice. Decode once, at load. The decoded
+      // form still works as a src/href (the browser re-encodes it on request).
+      function decodeMediaUrl(u) {
+        if (typeof u !== 'string' || !/%[0-9A-Fa-f]{2}/.test(u)) return u;
+        try { return decodeURI(u); } catch (e) { return u; }
+      }
+
       function normalizeEntry(raw, galleryId) {
         const platform = Array.isArray(raw.platform) ? raw.platform
           : (raw.platform ? [raw.platform] : []);
         return Object.assign({}, raw, {
+          url: decodeMediaUrl(raw.url),
+          ...(raw.thumbnail ? { thumbnail: decodeMediaUrl(raw.thumbnail) } : {}),
           _gallery: galleryId,
           link: raw.link || raw.weibo || '',
           platform: platform,
@@ -3117,6 +3129,8 @@
       /* ---------- Playlist Functions ---------- */
       function plLoad() {
           try { playlist = JSON.parse(localStorage.getItem(PL_KEY) || '[]'); } catch(e) { playlist = []; }
+          // saved before decodeMediaUrl() existed — normalize so they still match loaded entries
+          playlist.forEach(p => { if (p && p.url) p.url = decodeMediaUrl(p.url); });
           plRender();
       }
       function plSave() { localStorage.setItem(PL_KEY, JSON.stringify(playlist)); }
