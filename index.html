@@ -3026,7 +3026,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20260920-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20260928-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
@@ -5062,6 +5062,11 @@
           forceLoadVisibleImages();
           _deferredLoadCheckPending = false;
         }, 400);
+        // Every render can introduce fresh placeholders (a new search, the
+        // silent background re-run, a page change) -- restart the periodic
+        // poll below each time in case an earlier poll already stopped itself
+        // after a previous render went fully clean.
+        _ensureLazyLoadPoll();
       }
 
       function createPaginationButtons(year, currentPage, totalPages) {
@@ -5224,6 +5229,30 @@
           _scrollLoadPending = false;
         }, 100);
       }, { passive: true });
+
+      // Periodic safety net (fixed Sept 2026): every other recovery above is
+      // triggered by a specific event (scroll settling, focus, visibility,
+      // one-shot post-render timeout) -- confirmed directly that a fast/large
+      // scroll (a real trackpad flick, not just automation) can move the
+      // viewport across an image's on-screen position between two rendered
+      // frames, so IntersectionObserver never sees it intersect at all, not
+      // even briefly. Once that happens, the image settles into "not visible
+      // per any checkpoint" and nothing ever looks at it again -- none of the
+      // existing listeners fire a second time with nothing to react to. This
+      // interval re-scans while any placeholder remains and stops itself once
+      // the page is clean, closing that gap regardless of what caused it.
+      let _lazyLoadPollTimer = null;
+      function _ensureLazyLoadPoll() {
+        if (_lazyLoadPollTimer) return;
+        _lazyLoadPollTimer = setInterval(() => {
+          if (!document.querySelector('.lazy-image[data-src]:not([src]), .lazy-image[data-src][src=""]')) {
+            clearInterval(_lazyLoadPollTimer);
+            _lazyLoadPollTimer = null;
+            return;
+          }
+          forceLoadVisibleImages();
+        }, 1000);
+      }
 
       function unloadYearImages(year) {
         document.querySelectorAll(`#photos-${year} img`).forEach((img) => {
