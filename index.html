@@ -3664,18 +3664,27 @@
       // rather than a tab switcher, since a tab row doesn't scale if more
       // collections get added later.
       /* ---------- Featured video (top of Collections) ----------
-         Edit FEATURED_VIDEO to feature a different video, or set it to null to take the card down.
-         Convention: upload the video to R2 under xzworks/featured/ with its poster beside it as
-         <name>-poster.jpg (generateThumbnail rule 0c) so playlist/modal thumbnails work. */
-      const FEATURED_VIDEO = {
-        url: 'https://assets.xz-studio-gallery.com/xzworks/featured/xz-10th-anniversary-reel.mp4',
-        label: 'FEATURED / 精选特辑',
-        title: 'Footprints in Light · 肖战 · 光影足迹',
-        sub: '出道十周年特辑 · 2016–2026 · 中英双语字幕',
-        desc: '十年作品回顾：从《超星星学园》到《十日终焉》。A look back at ten years of screen and stage work.',
-        date: '2026-09-28',
-        duration: 204,
-      };
+         Settings come from featured.json on the CDN, shared with XZWorks and managed in autosync
+         (⚙️ 配置 → 精选视频 Featured). No card when it's missing, null, or showOn.navigator is false.
+         Convention: videos live on R2 under xzworks/featured/ with a <name>-poster.jpg beside them
+         (generateThumbnail rule 0c) so playlist/modal thumbnails work. */
+      const FEATURED_JSON = 'https://assets.xz-studio-gallery.com/xzworks/featured/featured.json';
+      let FEATURED_VIDEO = null;
+      // per-minute query string: a change shows up within a minute without waiting on CDN/browser caches
+      fetch(FEATURED_JSON + '?t=' + Math.floor(Date.now() / 60000))
+        .then(r => r.ok ? r.json() : null)
+        .then(cfg => {
+          const f = cfg && cfg.featured;
+          if (!f || !f.video || (f.showOn && f.showOn.navigator === false)) return;
+          FEATURED_VIDEO = {
+            url: f.video, poster: f.poster, label: 'FEATURED / 精选特辑',
+            title: [f.titleEn, f.titleZh].filter(Boolean).join(' · '),
+            sub: [f.occasion, f.sub].filter(Boolean).join(' · '),
+            desc: f.desc || '', date: f.date || '', duration: f.duration || 0,
+          };
+          renderFeaturedCard();
+        })
+        .catch(() => {});
 
       const ftEsc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -3701,7 +3710,7 @@
                                 </div>
                                 <div class="year-preview-zone featured-zone">
                                     <div class="ft-media" role="button" tabindex="0" aria-label="Play" onclick="featuredPlay()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();featuredPlay();}">
-                                        <img src="${generateThumbnail(f.url, 'm')}" alt="${ftEsc(f.title)}" loading="lazy">
+                                        <img src="${ftEsc(f.poster || generateThumbnail(f.url, 'm'))}" alt="${ftEsc(f.title)}" loading="lazy">
                                         <span class="ft-play">▶</span>
                                     </div>
                                     <div class="ft-text">
