@@ -5599,6 +5599,11 @@
       // Single entry point for every filter/search change — replaces the old
       // separate performSearch/applyDateFilter paths that didn't combine.
       function applyAllFilters() {
+        // New search/filter ⇒ every group starts on page 1. A group left on page 3 by an
+        // earlier search otherwise renders an empty grid when the new result set fits on
+        // one page (header shows the count, pager hides) — seen with Archive + "春节"
+        // (Oct 2026). Only user actions call this; background loading doesn't.
+        Object.keys(yearPaginationSettings).forEach(y => { yearPaginationSettings[y].currentPage = 1; });
         const resetBtn = document.getElementById("resetDateBtn");
         resetBtn.classList.toggle('hidden', !hasActiveDropdownFilters());
         elClearSearchBtn.style.display = currentSearchQuery ? "block" : "none";
