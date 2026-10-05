@@ -602,7 +602,8 @@
         background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
       }
       .badge-twitter {
-        background-color: #1da1f2;
+        /* X (formerly Twitter) brand style — data values 'twitter' and 'x' both use it */
+        background-color: #000000;
       }
       .badge-douyin {
         background-color: #000000;
@@ -2547,7 +2548,7 @@
               <option value="oasis">Oasis</option>
               <option value="douyin">Douyin</option>
               <option value="instagram">Instagram</option>
-              <option value="x">X / Twitter</option>
+              <option value="x">X</option>
               <option value="facebook">Facebook</option>
               <option value="rednote">RedNote</option>
               <option value="qq">QQ</option>
@@ -3045,7 +3046,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20260928-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20261005-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
@@ -4176,7 +4177,7 @@
       function setPlatformBtnBehavior(btn, mainLink, extraLinks, primarySource) {
         const existingPop = document.getElementById('platformPopover');
         if (existingPop) existingPop.style.display = 'none';
-        const lmap = {weibo:'Weibo 微博',oasis:'Oasis 绿洲',douyin:'Douyin 抖音',youtube:'YouTube',bilibili:'Bilibili',ins:'Instagram',instagram:'Instagram',xiaohongshu:'RedNote 小红书',xhs:'RedNote 小红书',rednote:'RedNote 小红书',twitter:'Twitter',x:'X',facebook:'Facebook',qq:'QQ 腾讯',wx:'WeChat 微信',wechat:'WeChat 微信',mgtv:'MGTV 芒果TV'};
+        const lmap = {weibo:'Weibo 微博',oasis:'Oasis 绿洲',douyin:'Douyin 抖音',youtube:'YouTube',bilibili:'Bilibili',ins:'Instagram',instagram:'Instagram',xiaohongshu:'RedNote 小红书',xhs:'RedNote 小红书',rednote:'RedNote 小红书',twitter:'X',x:'X',facebook:'Facebook',qq:'QQ 腾讯',wx:'WeChat 微信',wechat:'WeChat 微信',mgtv:'MGTV 芒果TV'};
         const links = [];
         const w = mainLink ? String(mainLink).trim() : '';
         // Label from the URL host first; then the entry's platform field (which can
@@ -4262,7 +4263,7 @@
             rednote:     { cls: 'badge-rednote',  text: 'REDNOTE' },
             xiaohongshu: { cls: 'badge-rednote',  text: 'REDNOTE' },
             douyin:      { cls: 'badge-douyin',   text: 'DOUYIN' },
-            twitter:     { cls: 'badge-twitter',  text: 'TWITTER' },
+            x:           { cls: 'badge-twitter',  text: 'X' },
             ins:         { cls: 'badge-instagram','text': 'INS' },
             youtube:     { cls: 'badge-youtube-src',  text: 'YOUTUBE' },
             bilibili:    { cls: 'badge-bilibili', text: 'BILI' },
@@ -4273,7 +4274,7 @@
         };
         const _seenBadges = new Set();
         const _badgeHtml = [];
-        const _normPlat = p => { const k = String(p).toLowerCase().trim(); return (k==='xiaohongshu'||k==='xhs') ? 'rednote' : k==='instagram' ? 'ins' : k==='wechat' ? 'wx' : k; };
+        const _normPlat = p => { const k = String(p).toLowerCase().trim(); return (k==='xiaohongshu'||k==='xhs') ? 'rednote' : k==='instagram' ? 'ins' : k==='wechat' ? 'wx' : k==='twitter' ? 'x' : k; };
         const _addBadge = (k) => {
             const key = _normPlat(k);
             if (_seenBadges.has(key)) return;
@@ -4783,7 +4784,7 @@
       // JSON order. Only Archive items are reordered, and only among the slots
       // they already hold within that date — Studio/Misc keep their exact
       // positions (a plain mixed-gallery comparator wouldn't be a consistent order).
-      const ARCHIVE_PLATFORM_ORDER = ['weibo', 'oasis', 'ins', 'douyin', 'rednote', 'twitter'];
+      const ARCHIVE_PLATFORM_ORDER = ['weibo', 'oasis', 'ins', 'douyin', 'rednote', 'x', 'twitter'];
       function orderArchiveWithinDates(photos) {
         const rank = p => { const i = ARCHIVE_PLATFORM_ORDER.indexOf((p.platform || [])[0]); return i === -1 ? 99 : i; };
         const cmp = (a, b) => {
