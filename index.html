@@ -601,6 +601,9 @@
       .badge-instagram {
         background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
       }
+      .badge-facebook {
+        background-color: #0866FF; /* Facebook brand blue */
+      }
       .badge-twitter {
         /* X (formerly Twitter) brand style — data values 'twitter' and 'x' both use it */
         background-color: #000000;
@@ -3046,7 +3049,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20261005-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20261005-2'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
@@ -4264,6 +4267,7 @@
             xiaohongshu: { cls: 'badge-rednote',  text: 'REDNOTE' },
             douyin:      { cls: 'badge-douyin',   text: 'DOUYIN' },
             x:           { cls: 'badge-twitter',  text: 'X' },
+            facebook:    { cls: 'badge-facebook', text: 'FB' },
             ins:         { cls: 'badge-instagram','text': 'INS' },
             youtube:     { cls: 'badge-youtube-src',  text: 'YOUTUBE' },
             bilibili:    { cls: 'badge-bilibili', text: 'BILI' },
