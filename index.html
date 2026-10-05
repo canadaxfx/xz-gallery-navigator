@@ -4777,11 +4777,48 @@
       // gallery's convention, honored here too) — stashed in _rawPhotoData so
       // the secret-trigger unlock below can re-derive photoData instantly
       // without re-fetching anything over the network.
+      // Same-date Archive entries follow the Archive gallery's own order (its
+      // loadData() sort): grouped by post (postGroup || link), then platform
+      // (ARCHIVE_PLATFORM_ORDER), then screenshot before attached, else original
+      // JSON order. Only Archive items are reordered, and only among the slots
+      // they already hold within that date — Studio/Misc keep their exact
+      // positions (a plain mixed-gallery comparator wouldn't be a consistent order).
+      const ARCHIVE_PLATFORM_ORDER = ['weibo', 'oasis', 'ins', 'douyin', 'rednote', 'twitter'];
+      function orderArchiveWithinDates(photos) {
+        const rank = p => { const i = ARCHIVE_PLATFORM_ORDER.indexOf((p.platform || [])[0]); return i === -1 ? 99 : i; };
+        const cmp = (a, b) => {
+          const ag = a.postGroup || a.link || '', bg = b.postGroup || b.link || '';
+          const gc = ag.localeCompare(bg);
+          if (gc !== 0) return gc;
+          if (ag) {
+            const pc = rank(a) - rank(b);
+            if (pc !== 0) return pc;
+            const tc = (a.type === 'screenshot' ? 0 : 1) - (b.type === 'screenshot' ? 0 : 1);
+            if (tc !== 0) return tc;
+          }
+          return a._ord - b._ord;
+        };
+        photos.forEach((p, i) => { p._ord = i; });
+        let start = 0;
+        while (start < photos.length) {
+          let end = start;
+          while (end < photos.length && photos[end].date === photos[start].date) end++;
+          const slots = [];
+          for (let i = start; i < end; i++) if (photos[i]._gallery === 'archive') slots.push(i);
+          if (slots.length > 1) {
+            const arch = slots.map(i => photos[i]).sort(cmp);
+            slots.forEach((slot, k) => { photos[slot] = arch[k]; });
+          }
+          start = end;
+        }
+      }
+
       function commitPhotoData(rawPhotos) {
         _rawPhotoData = rawPhotos;
         const visible = window._xzShowAll ? rawPhotos.slice() : rawPhotos.filter(p => !p.hidden);
         const photos = dedupeCrossGalleryByUrl(visible);
         photos.sort((a, b) => new Date(b.date) - new Date(a.date));
+        orderArchiveWithinDates(photos);
         photos.forEach((photo, index) => { photo.id = index + 1; });
 
         photoData = photos;
