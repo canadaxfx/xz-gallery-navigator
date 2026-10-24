@@ -3049,7 +3049,7 @@
 // ============================================================
 
       /* ---------- Core Variables ---------- */
-      const DATA_VER = '20261016-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
+      const DATA_VER = '20261024-1'; // this site's own asset version (unrelated to each gallery's own DATA_VER)
 
       // Source galleries — each origin's JSON responses already send
       // Access-Control-Allow-Origin: * (confirmed live), so these are
@@ -4404,7 +4404,7 @@
         // --- 6. Update Download Link ---
         if (_isYT) {
           if (photo.download_url) {
-            dlSetBtn(downloadBtn, photo.download_url);
+            dlSetBtn(downloadBtn, photo.download_url, photo.size_download);
             downloadBtn.style.display = '';
           } else {
             downloadBtn.style.display = 'none';
@@ -4414,7 +4414,7 @@
           const _dlUrl = (_isVid && photo.url_4k) ? photo.url_4k
                        : (_isVid && photo.url_hd) ? photo.url_hd
                        : photo.download_url || photo.url;
-          dlSetBtn(downloadBtn, _dlUrl);
+          dlSetBtn(downloadBtn, _dlUrl, photo.size_download);
         }
         const badgeAlt = document.getElementById('badgeAlt');
         if (badgeAlt) {
@@ -5952,15 +5952,17 @@
       const DL_KEY  = 'xzDlUnlocked';
       function dlIsUnlocked() { const t = localStorage.getItem(DL_KEY); return !!t && (Date.now() - parseInt(t)) < 2 * 60 * 1000; }
       function dlIsLocked(url) { return !!url && url.includes('canadaxfx.synology.me'); }
-      function dlSetBtn(btn, url) {
+      function dlSetBtn(btn, url, sizeMb) {
+          // NAS downloads show the file size (size_download, MB) so visitors know what they're getting
+          const sz = (dlIsLocked(url) && sizeMb) ? ' · ' + (sizeMb >= 1024 ? (sizeMb / 1024).toFixed(1) + ' GB' : Math.round(sizeMb) + ' MB') : '';
           if (dlIsLocked(url) && !dlIsUnlocked()) {
               btn.href = '#'; btn.removeAttribute('download');
               btn.onclick = e => { e.preventDefault(); dlShowPrompt(url); };
-              const sm = btn.querySelector('small'); if (sm) sm.textContent = '🔒 联系管理员';
+              const sm = btn.querySelector('small'); if (sm) sm.textContent = '🔒 联系管理员' + sz;
           } else {
               const dlHref = dlIsLocked(url) ? url + '?dl=1' : url;
               btn.href = dlHref; btn.setAttribute('download', ''); btn.onclick = null;
-              const sm = btn.querySelector('small'); if (sm) sm.textContent = '下载高清';
+              const sm = btn.querySelector('small'); if (sm) sm.textContent = '下载高清' + sz;
           }
       }
       let _dlPendingUrl = null;
