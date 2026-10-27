@@ -174,17 +174,66 @@
         --surface-0: #f0f4ff; --surface-w: #e0e8f8;
         --surface-m: #e8eef8; --surface-d: #dce5f5; --border: #c8d0e8;
       }
-      [data-theme="violet"] {
-        --bg-base: #0d0418; --bg-base-2: #160622;
-        --bg-dark: #2a0840; --bg-mid:    #380b55;
-        --bg-btn:  #2a0840; --bg-btn-h:  #380b55; --bg-float: #200630;
-        --red-rgb: 100, 20, 180; --shad-rgb: 20, 5, 40;
-        --grad-red:   linear-gradient(135deg, #2a0840 0%, #380b55 100%);
-        --grad-red-h: linear-gradient(135deg, #380b55, #2e0948);
-        --grad-year:  linear-gradient(45deg,  #2a0840, #380b55);
-        --surface:   rgba(248, 242, 255, 0.98);
-        --surface-0: #f8f2ff; --surface-w: #ede0f8;
-        --surface-m: #f2ebfc; --surface-d: #ece0f5; --border: #d0c0e8;
+      /* 出口 Exit — colours of the 「出口·我们」 tour site (xz-tour.pages.dev): warm black + tour red, no yellow (replaced violet) */
+      [data-theme="exit"] {
+        --bg-base: #0B0708; --bg-base-2: #120A0C;
+        --bg-dark: #170D0F; --bg-mid:    #24131A;
+        --bg-btn:  #1C0F12; --bg-btn-h:  #2A1218; --bg-float: #170D0F;
+        --gold:        #E5203A;
+        --gold-rgb:    229, 32, 58;
+        --gold-dr:     122, 10, 24;
+        /* fills (tabs, badges, count pills, Play) in deep wine red without a bright highlight; the solid --gold
+           above stays a clear red for text, thin lines and the active edge — like the tour site, red used sparingly */
+        --grad-gold:   linear-gradient(135deg, #A3101F 0%, #7A0A18 100%);
+        --grad-gold-h: linear-gradient(135deg, #8A0C1A 0%, #600814 100%);
+        --red-rgb: 216, 16, 42; --shad-rgb: 11, 7, 8;
+        --grad-red:   linear-gradient(135deg, #1C0F12 0%, #2A1218 100%);
+        --grad-red-h: linear-gradient(135deg, #2A1218, #24131A);
+        --grad-year:  linear-gradient(45deg,  #170D0F, #2A1218);
+        --surface:   rgba(246, 243, 243, 0.98);
+        --surface-0: #F6F3F3; --surface-w: #ECE6E7;
+        --surface-m: #F3EEEF; --surface-d: #EAE3E4; --border: #DCCFD1;
+      }
+      /* the year bars' thumbnail strip sits on the light card at 82% opacity: solid here, or black-red turns muddy grey-brown */
+      [data-theme="exit"] .year-preview-zone { opacity: 1; }
+      /* Two reds only: wine for anything solid or thick (fills, the year card's 5 px edge, the corner band), bright red
+         only for text and thin marks. See-through red outlines on the light card looked pink (a third red): neutral here. */
+      [data-theme="exit"] .timeline-year { border-color: var(--border); border-left-color: #8E0C1C; }
+      [data-theme="exit"] .date-select-wrapper,
+      [data-theme="exit"] .pl-add-all-btn { border-color: var(--border); }
+      [data-theme="exit"] .media-tab.active { box-shadow: 0 2px 8px rgba(11, 7, 8, 0.22); }
+      [data-theme="exit"] .media-tab:hover { background: rgba(11, 7, 8, 0.05); color: var(--gold); }   /* was a hard-coded rose pink */
+      [data-theme="exit"] .filter-row .filter-group-tabs .media-tab:not(:last-child) { border-right-color: var(--border); }   /* Navigator */
+      [data-theme="exit"] .content-section { background: var(--surface); }   /* Misc + Archive hard-code the default cream here */
+      /* The tour's red doorway stage (肖战工作室 photo, 2026-10-25) fading into black behind the header, and the
+         key visual's red diagonal corner band. Both sit behind everything (z-index -1). */
+      [data-theme="exit"] body { position: relative; isolation: isolate; }
+      [data-theme="exit"] body::before {
+        content: ""; position: absolute; left: 0; right: 0; top: 0; height: min(78vh, 760px); z-index: -1; pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(11, 7, 8, .42) 0%, rgba(11, 7, 8, .76) 45%, var(--bg-base) 100%),
+          url("theme/stage-exit-1600.jpg") 50% 78% / cover no-repeat;
+      }
+      [data-theme="exit"] body::after {
+        content: ""; position: absolute; top: 0; right: 0; z-index: -1; pointer-events: none;
+        width: min(26vw, 280px); height: min(17vw, 180px);
+        background: #9E0E1E; clip-path: polygon(0 0, 100% 0, 100% 100%);
+      }
+      /* Header text sits on the red stage photo: soft rose-white / warm grey instead of red, plus a faint shadow.
+         Red stays only as marks (the active tab's underline). */
+      [data-theme="exit"] .mini-nav-label { color: #EBD3D6; }
+      [data-theme="exit"] nav.nav-buttons .tab-zh { color: rgba(235, 211, 214, 0.88); }
+      [data-theme="exit"] nav.nav-buttons .nav-btn:not(.active) .tab-zh { color: rgba(185, 167, 170, 0.62); }
+      [data-theme="exit"] nav.nav-buttons .nav-btn:hover .tab-zh { color: rgba(235, 211, 214, 0.8); }
+      [data-theme="exit"] header h1, [data-theme="exit"] .mini-nav-label, [data-theme="exit"] .mini-nav-chip-label,
+      [data-theme="exit"] nav.nav-buttons .nav-btn { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
+      @media (max-width: 600px) {
+        [data-theme="exit"] body::before {
+          height: 56vh;
+          background:
+            linear-gradient(180deg, rgba(11, 7, 8, .32) 0%, rgba(11, 7, 8, .66) 45%, var(--bg-base) 100%),
+            url("theme/stage-exit-800.jpg") 50% 78% / cover no-repeat;
+        }
       }
       [data-theme="sakura"] {
         --bg-base: #0E0608; --bg-base-2: #160A0C;
@@ -6050,7 +6099,8 @@
           document.querySelectorAll('.theme-dot').forEach(b => b.classList.toggle('tdot-active', b.dataset.t === t));
           if (window.mgUpdateTone) window.mgUpdateTone(t);
         }
-        const saved = localStorage.getItem(KEY) || 'washi-slate';
+        let saved = localStorage.getItem(KEY) || 'exit';   // default for new visitors: 出口 Exit (was washi-slate)
+        if (saved === 'violet') { saved = 'exit'; localStorage.setItem(KEY, 'exit'); }   // violet was replaced by 出口 Exit
         if (saved === 'red') document.documentElement.removeAttribute('data-theme');
         else document.documentElement.dataset.theme = saved;
         document.addEventListener('DOMContentLoaded', () => {
@@ -6162,7 +6212,7 @@
       <button class="theme-dot" data-t="sakura"        title="Sakura Night 夜樱"         style="background:#2A1018;"></button>
       <button class="theme-dot" data-t="sapphire"      title="Midnight Sapphire 星夜蓝"  style="background:#1A3FAA;"></button>
       <button class="theme-dot" data-t="lunar"         title="Lunar 月华"               style="background:#3A5890;"></button>
-      <button class="theme-dot" data-t="violet"        title="Imperial Violet 帝紫"      style="background:#5A0FA0;"></button>
+      <button class="theme-dot" data-t="exit"          title="Exit 出口"                 style="background:linear-gradient(135deg,#0B0708 50%,#D8102A 50%);"></button>
       <button class="theme-dot" data-t="washi-garnet"  title="Washi · Garnet 和纸·朱砂"  style="background:linear-gradient(135deg,#EAEAEC 50%,#7A2030 50%);"></button>
       <button class="theme-dot" data-t="washi-slate"   title="Washi · Slate 和纸·青墨"   style="background:linear-gradient(135deg,#ECEDF1 50%,#3A4860 50%);"></button>
       <span id="mgDivider"></span>
@@ -6204,7 +6254,7 @@
       rose:  'sepia(.2) hue-rotate(295deg) saturate(1.6) brightness(1.05)'
     };
     const THEME_TONE = {
-      'red':'gold','sakura':'gold','sapphire':'gold','lunar':'gold','violet':'gold',
+      'red':'gold','sakura':'gold','sapphire':'gold','lunar':'gold','exit':'rose',
       'washi-garnet':'rose','washi-slate':'cream'
     };
     const LAYOUT_BRIGHTNESS = { A: 'brightness(0.8)', P: 'brightness(0.2)' };
