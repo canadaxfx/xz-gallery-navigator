@@ -4194,6 +4194,61 @@
       // platform_links may be the legacy {platform:url} object OR the current list
       // [{platform,url},…] — every link is independent, so the same platform can
       // appear more than once (e.g. two weibo cross-posts). Always read via this.
+      /* ---------- Platform names: ONE standard for Studio, Misc, Archive and Navigator (Nov 2026) ----------
+         Data stores a lowercase key; PLATFORM_LABELS gives what visitors see. PLATFORM_ALIASES maps the
+         old spellings (ins, wx, xiaohongshu, 爱奇艺, …) so anything saved before the clean-up still works.
+         Keep this block identical in all four sites. */
+      const PLATFORM_ALIASES = {xiaohongshu:'rednote', xhs:'rednote', ins:'instagram', twitter:'x', wx:'wechat',
+        '爱奇艺':'iqiyi', '央视频':'yangshipin', '企鹅fm':'qq', '中新网视频':'chinanews', '中国军网':'81cn'};
+      const PLATFORM_LABELS = {weibo:'Weibo 微博', douyin:'Douyin 抖音', rednote:'RedNote 小红书', instagram:'Instagram',
+        x:'X', facebook:'Facebook', oasis:'Oasis 绿洲', wechat:'WeChat 微信', qq:'QQ 腾讯', iqiyi:'iQIYI 爱奇艺',
+        youtube:'YouTube', bilibili:'Bilibili 哔哩哔哩', mgtv:'MGTV 芒果TV', yangshipin:'央视频', baidu:'Baidu 百度',
+        sohu:'Sohu 搜狐', ua:'U/A', gucci:'Gucci 官网', chinanews:'中新网 China News', '81cn':'中国军网'};
+      const PLATFORM_BADGE_TEXT = {iqiyi:'IQIYI', qq:'QQ', mgtv:'MGTV', yangshipin:'央视频', baidu:'BAIDU', sohu:'SOHU',
+        ua:'U/A', gucci:'GUCCI', chinanews:'中新网', '81cn':'中国军网'};
+      // Platforms with their own Platform-filter option (listed only when the gallery has entries for them);
+      // every other platform is reachable through "Others 其他".
+      const PLATFORM_FILTER_ORDER = ['weibo','douyin','rednote','instagram','x','facebook','oasis','wechat','qq',
+        'iqiyi','youtube','bilibili','mgtv','yangshipin','ua'];
+      const PLATFORM_FILTER_LABELS = {weibo:'Weibo', douyin:'Douyin', rednote:'RedNote', instagram:'Instagram', x:'X',
+        facebook:'Facebook', oasis:'Oasis', wechat:'WeChat', qq:'QQ', iqiyi:'iQIYI', youtube:'YouTube',
+        bilibili:'Bilibili', mgtv:'MGTV', yangshipin:'央视频', ua:'U/A'};
+      function platKey(p) { const s = String(p == null ? '' : p).trim(); const k = s.toLowerCase();
+        return PLATFORM_ALIASES[k] || PLATFORM_ALIASES[s] || k; }
+      function platLabel(p) { return PLATFORM_LABELS[platKey(p)] || String(p); }
+      // lmap[anySpelling] → label; undefined for unknown keys so each caller's own fallback still applies
+      const PLATFORM_LMAP = new Proxy({}, { get: (_, k) => typeof k === 'string' ? PLATFORM_LABELS[platKey(k)] : undefined });
+      function itemPlatKeys(item) {
+        const ks = new Set();
+        const v = item && item.platform;
+        (Array.isArray(v) ? v : (v ? [v] : [])).forEach(p => { if (p) ks.add(platKey(p)); });
+        normPlatformLinks(item && item.platform_links).forEach(x => ks.add(platKey(x.platform)));
+        if (!ks.size) ks.add('weibo');
+        return ks;
+      }
+      function matchesPlatformFilter(item, sVal) {
+        if (!sVal || sVal === 'all') return true;
+        const ks = itemPlatKeys(item);
+        if (sVal === 'other') return ![...ks].some(k => PLATFORM_FILTER_ORDER.includes(k));
+        return ks.has(platKey(sVal));
+      }
+      function buildPlatformFilter(items) {
+        const sel = document.getElementById('filterSource');
+        if (!sel) return;
+        const present = new Set(); let other = false;
+        (items || []).forEach(it => {
+          const ks = [...itemPlatKeys(it)];
+          ks.forEach(k => { if (PLATFORM_FILTER_ORDER.includes(k)) present.add(k); });
+          if (!ks.some(k => PLATFORM_FILTER_ORDER.includes(k))) other = true;   // same rule as matchesPlatformFilter('other')
+        });
+        const cur = sel.value;
+        sel.innerHTML = '<option value="all">Platform</option>'
+          + PLATFORM_FILTER_ORDER.filter(k => present.has(k)).map(k => `<option value="${k}">${PLATFORM_FILTER_LABELS[k]}</option>`).join('')
+          + (other ? '<option value="other">Others 其他</option>' : '');
+        sel.value = [...sel.options].some(o => o.value === cur) ? cur : 'all';
+        if (window.cselBuild) window.cselBuild('filterSource');
+      }
+
       function normPlatformLinks(pl) {
         if (Array.isArray(pl)) {
           return pl.filter(x => x && x.platform && x.url)
@@ -4229,7 +4284,7 @@
       function setPlatformBtnBehavior(btn, mainLink, extraLinks, primarySource) {
         const existingPop = document.getElementById('platformPopover');
         if (existingPop) existingPop.style.display = 'none';
-        const lmap = {weibo:'Weibo 微博',oasis:'Oasis 绿洲',douyin:'Douyin 抖音',youtube:'YouTube',bilibili:'Bilibili',ins:'Instagram',instagram:'Instagram',xiaohongshu:'RedNote 小红书',xhs:'RedNote 小红书',rednote:'RedNote 小红书',twitter:'X',x:'X',facebook:'Facebook',qq:'QQ 腾讯',wx:'WeChat 微信',wechat:'WeChat 微信',mgtv:'MGTV 芒果TV'};
+        const lmap = PLATFORM_LMAP;
         const links = [];
         const w = mainLink ? String(mainLink).trim() : '';
         // Label from the URL host first; then the entry's platform field (which can
@@ -4327,12 +4382,12 @@
         };
         const _seenBadges = new Set();
         const _badgeHtml = [];
-        const _normPlat = p => { const k = String(p).toLowerCase().trim(); return (k==='xiaohongshu'||k==='xhs') ? 'rednote' : k==='instagram' ? 'ins' : k==='wechat' ? 'wx' : k==='twitter' ? 'x' : k; };
+        const _normPlat = p => { const k = platKey(p); return k === 'instagram' ? 'ins' : k === 'wechat' ? 'wx' : k; };
         const _addBadge = (k) => {
             const key = _normPlat(k);
             if (_seenBadges.has(key)) return;
             _seenBadges.add(key);
-            const def = _BADGE_DEFS[key] || { cls: 'badge-other', text: key.toUpperCase().slice(0, 8) };
+            const def = _BADGE_DEFS[key] || { cls: 'badge-other', text: PLATFORM_BADGE_TEXT[key] || key.toUpperCase().slice(0, 8) };
             _badgeHtml.push(`<span class="source-badge ${def.cls}">${def.text}</span>`);
         };
         const _stypes = Array.isArray(photo.platform) ? photo.platform : (photo.platform ? [photo.platform] : []);
@@ -4887,6 +4942,7 @@
           opt.innerText = y;
           yearSelect.appendChild(opt);
         });
+        buildPlatformFilter(photoData);
         if (window.cselBuild) window.cselBuild('filterYear');
       }
 
@@ -5594,8 +5650,7 @@
       // (baidu, 央视频, etc.) that don't have their own dropdown option — anything
       // NOT in this known set counts as "other". Keep in sync with the explicit
       // <option> values in #filterSource and the synonyms applied below.
-      const _KNOWN_PLATFORMS = new Set(['weibo', 'oasis', 'douyin', 'ins', 'instagram',
-        'rednote', 'xiaohongshu', 'xhs', 'x', 'twitter', 'facebook', 'qq', 'wx', 'wechat', 'mgtv', 'ua']);
+      const _KNOWN_PLATFORMS = new Set(PLATFORM_FILTER_ORDER);
 
       function matchesActiveFilters(item) {
         if (currentGalleryFilter !== 'all' && item._gallery !== currentGalleryFilter) return false;
@@ -5613,27 +5668,7 @@
           if (mVal !== 'all' && pMonth !== mVal) return false;
           if (dVal !== 'all' && pDay !== dVal) return false;
         }
-        if (sVal !== 'all') {
-          const _itemPlatforms = new Set();
-          if (item.platform) {
-            const _st = Array.isArray(item.platform) ? item.platform : [item.platform];
-            _st.forEach(t => _itemPlatforms.add(String(t).toLowerCase()));
-          }
-          normPlatformLinks(item.platform_links).forEach(x => _itemPlatforms.add(x.platform.toLowerCase()));
-          if (!_itemPlatforms.size) _itemPlatforms.add('weibo');
-          if (_itemPlatforms.has('xiaohongshu') || _itemPlatforms.has('xhs')) _itemPlatforms.add('rednote');
-          if (_itemPlatforms.has('ins')) _itemPlatforms.add('instagram');
-          if (_itemPlatforms.has('instagram')) _itemPlatforms.add('ins');
-          if (_itemPlatforms.has('wechat')) _itemPlatforms.add('wx');
-          if (_itemPlatforms.has('wx')) _itemPlatforms.add('wechat');
-          if (_itemPlatforms.has('twitter')) _itemPlatforms.add('x');
-          if (_itemPlatforms.has('x')) _itemPlatforms.add('twitter');
-          if (sVal === 'other') {
-            if ([..._itemPlatforms].some(p => _KNOWN_PLATFORMS.has(p))) return false;
-          } else if (!_itemPlatforms.has(sVal)) {
-            return false;
-          }
-        }
+        if (!matchesPlatformFilter(item, sVal)) return false;
         return true;
       }
 
