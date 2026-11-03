@@ -2875,6 +2875,7 @@
                 <option value="download-issue">
                   Download Problem 下载问题
                 </option>
+                <option value="download-request">Request HD File 申请高清文件</option>
                 <option value="page-error">Page Error 页面错误</option>
                 <option value="feature-request">
                   Feature Request 功能建议
@@ -3041,7 +3042,7 @@
 //
 // CONSTANTS & STATE
 //   Core Variables          photoData, currentFilter, expandedYears,
-//                           yearPaginationSettings, DL_KEY
+//                           yearPaginationSettings
 //   Modal Variables         currentPhotoGroup, currentPhotoIndex
 //   Playlist State          playlist[], filteredVideosCache, PL_KEY='xzUnifiedPlaylist'
 //
@@ -3086,7 +3087,7 @@
 //                           isVideoUrl, isRealVideo, isVideoEntry, isClip,
 //                           isMotionUrl, isYouTubeUrl, fmtDuration,
 //                           mediaCountLabel, setMediaFilter
-//                           dlIsLocked/Unlocked (NAS download lock)
+//                           dlIsLocked/dlSetBtn/dlRequest (NAS file → admin request)
 //
 // GALLERY FILTER            setGalleryFilter, currentGalleryFilter —
 //                           studio/misc/archive/all, same pattern as
@@ -6031,42 +6032,39 @@
       function isYouTubeUrl(url) { return /youtube\.com\/watch|youtu\.be\//.test(url); }
       function isAudioUrl(url) { return /\.mp3$/i.test(url); }
 
-      // --- Download Lock ---
-      const DL_HASH = '858a4b33bd3546c160fb7a0d42ba20d03da98635f5405dc8d0ec9689c1a3a5ef';
-      const DL_KEY  = 'xzDlUnlocked';
-      function dlIsUnlocked() { const t = localStorage.getItem(DL_KEY); return !!t && (Date.now() - parseInt(t)) < 2 * 60 * 1000; }
+      // --- NAS HD downloads (Nov 2026) ---
+      // The NAS no longer serves files to the public. A NAS download_url stays in the data so the admin
+      // can find the file; its button opens the Report popup as a "Request HD file" message, and the
+      // admin replies with a time-limited Synology share link.
       function dlIsLocked(url) { return !!url && url.includes('canadaxfx.synology.me'); }
       function dlSetBtn(btn, url, sizeMb) {
-          // NAS downloads show the file size (size_download, MB) so visitors know what they're getting
+          // NAS downloads show the file size (size_download, MB) so visitors know what they're asking for
           const sz = (dlIsLocked(url) && sizeMb) ? ' · ' + (sizeMb >= 1024 ? (sizeMb / 1024).toFixed(1) + ' GB' : Math.round(sizeMb) + ' MB') : '';
-          if (dlIsLocked(url) && !dlIsUnlocked()) {
+          if (dlIsLocked(url)) {
               btn.href = '#'; btn.removeAttribute('download');
-              btn.onclick = e => { e.preventDefault(); dlShowPrompt(url); };
+              btn.onclick = e => { e.preventDefault(); dlRequest(url); };
               const sm = btn.querySelector('small'); if (sm) sm.textContent = '🔒 联系管理员' + sz;
           } else {
-              const dlHref = dlIsLocked(url) ? url + '?dl=1' : url;
-              btn.href = dlHref; btn.setAttribute('download', ''); btn.onclick = null;
+              btn.href = url; btn.setAttribute('download', ''); btn.onclick = null;
               const sm = btn.querySelector('small'); if (sm) sm.textContent = '下载高清' + sz;
           }
       }
-      let _dlPendingUrl = null;
-      function dlShowPrompt(url) {
-          _dlPendingUrl = url;
-          document.getElementById('dlPwInput').value = '';
-          document.getElementById('dlPwError').textContent = '';
-          document.getElementById('dlUnlockOverlay').style.display = 'flex';
-          setTimeout(() => document.getElementById('dlPwInput').focus(), 100);
+      function dlRequest(url) {
+          openReportModal();
+          const file = decodeURIComponent(url.split('?')[0].split('/').pop());
+          document.getElementById('reportType').value = 'download-request';
+          document.getElementById('reportPage').value = 'HD file 高清文件: ' + file;
+          document.getElementById('reportDescription').value =
+              '请发给我这个高清文件的下载链接。\nPlease send me a download link for this HD file.';
+          const em = document.getElementById('reportEmail');
+          em.required = true;   // the admin needs an address to send the link to
+          setTimeout(() => em.focus(), 100);
       }
-      function dlClose() { document.getElementById('dlUnlockOverlay').style.display = 'none'; _dlPendingUrl = null; }
-      async function dlConfirm() {
-          const pw = document.getElementById('dlPwInput').value;
-          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-          const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-          if (hex === DL_HASH) { localStorage.setItem(DL_KEY, Date.now().toString()); dlClose(); updateModalContent(); }
-          else { document.getElementById('dlPwError').textContent = '密码错误，请联系管理员获取密码'; }
-      }
-      document.addEventListener('keydown', e => {
-          if (e.key === 'Enter' && document.getElementById('dlUnlockOverlay')?.style.display !== 'none') dlConfirm();
+      document.getElementById('reportType').addEventListener('change', e => {
+          document.getElementById('reportEmail').required = e.target.value === 'download-request';
+      });
+      document.getElementById('reportForm').addEventListener('reset', () => {
+          document.getElementById('reportEmail').required = false;
       });
       function getYouTubeId(url) { const m = url.match(/[?&]v=([^&]+)/)||url.match(/youtu\.be\/([^?/]+)/); return m?m[1]:null; }
       function isMotionUrl(url) { return /\.(mov|gif)$/i.test(url); }
@@ -6225,21 +6223,6 @@
     </div>
     <div id="plToast"></div>
 
-<!-- DL UNLOCK PROMPT -->
-<div id="dlUnlockOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;align-items:center;justify-content:center;">
-  <div style="background:#f8f4eb;border-radius:14px;padding:28px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(14,10,31,0.4);">
-    <div style="font-size:36px;margin-bottom:8px;">🔒</div>
-    <div style="font-weight:700;font-size:16px;margin-bottom:6px;">受保护内容 Protected Content</div>
-    <div style="font-size:13px;color:#6b7280;margin-bottom:18px;">请联系管理员获取下载密码<br>Contact admin for download password</div>
-    <input type="password" id="dlPwInput" placeholder="输入密码" onkeydown="if(event.key==='Enter')dlConfirm()"
-      style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:14px;margin-bottom:8px;box-sizing:border-box;outline:none;" />
-    <div id="dlPwError" style="color:#dc2626;font-size:12px;min-height:18px;margin-bottom:10px;"></div>
-    <div style="display:flex;gap:10px;justify-content:center;">
-      <button onclick="dlConfirm()" style="background:#6366f1;color:white;border:none;padding:9px 22px;border-radius:7px;cursor:pointer;font-weight:600;font-size:14px;">确认</button>
-      <button onclick="dlClose()" style="background:#f3f4f6;color:#374151;border:none;padding:9px 22px;border-radius:7px;cursor:pointer;font-size:14px;">取消</button>
-    </div>
-  </div>
-</div>
   <div id="themeSwitcher">
     <span id="styleLabel">换肤 Skin</span>
     <div class="ts-expand">
